@@ -1,0 +1,8 @@
+package pl.edu.umg.linkumg.repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import pl.edu.umg.linkumg.models.College;
+
+public interface CollegeRepository extends JpaRepository<College, Integer> {
+
+}

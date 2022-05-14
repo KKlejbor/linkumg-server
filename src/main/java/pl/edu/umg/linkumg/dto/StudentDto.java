@@ -1,0 +1,41 @@
+package pl.edu.umg.linkumg.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+import pl.edu.umg.linkumg.models.Role;
+
+public class StudentDto {
+
+    @Getter @Setter
+    private Integer userId;
+
+    @Getter @Setter
+    private boolean active;
+
+    @Getter @Setter
+    private String email;
+
+    @Getter @Setter
+    private String password;
+
+    @Getter @Setter
+    private String firstname;
+
+    @Getter @Setter
+    private String lastname;
+
+    @Getter @Setter
+    private String description;
+
+    @Getter @Setter
+    private Role userRole;
+
+    @Getter @Setter
+    private String pathToAvatar;
+
+    @Getter @Setter
+    private int indexNumber;
+
+    @Getter @Setter
+    private String faculty;
+}
