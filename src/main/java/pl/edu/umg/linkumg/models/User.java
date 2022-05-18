@@ -6,6 +6,8 @@ import lombok.Setter;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "user_role",
+        discriminatorType = DiscriminatorType.INTEGER)
 public class User {
 
     @Id
@@ -31,8 +33,9 @@ public class User {
     @Getter @Setter
     private String description;
 
-    @Enumerated(EnumType.ORDINAL)
+//    @Enumerated(EnumType.ORDINAL)
     @Getter @Setter
+    @Column(name = "user_role", updatable = false, insertable = false)
     private Role userRole;
 
     @Getter @Setter
