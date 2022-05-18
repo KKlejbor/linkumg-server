@@ -7,11 +7,9 @@ import lombok.Setter;
 
 @Entity
 @DiscriminatorValue("3")
+@Getter
+@Setter
 public class Employer extends User {
-
-    @Getter @Setter
     private String companyName;
-
-    @Getter @Setter
     private String leiNumber;
 }

@@ -7,11 +7,9 @@ import lombok.Setter;
 
 @Entity
 @DiscriminatorValue("4")
+@Getter
+@Setter
 public class Student extends User {
-
-    @Getter @Setter
     private int indexNumber;
-
-    @Getter @Setter
     private String faculty;
 }
