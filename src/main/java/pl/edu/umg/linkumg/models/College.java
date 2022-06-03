@@ -1,14 +1,10 @@
 package pl.edu.umg.linkumg.models;
 
-import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 @Entity
-@DiscriminatorValue("2")
-@Getter
-@Setter
+@Data
 public class College extends User {
     private String faculty;
 }
