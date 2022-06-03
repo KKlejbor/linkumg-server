@@ -1,9 +1,6 @@
 package pl.edu.umg.linkumg.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,6 +12,7 @@ public class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer userId;
     private boolean active;
+    @Column(unique = true)
     private String email;
     private String password;
     private String firstname;

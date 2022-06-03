@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import pl.edu.umg.linkumg.dto.LoginDto;
 import pl.edu.umg.linkumg.models.User;
-import pl.edu.umg.linkumg.service.UserService;
+import pl.edu.umg.linkumg.service.impl.UserService;
 
 import java.util.Optional;
 
@@ -21,7 +21,7 @@ public class LoginController {
     private UserService userService;
     private ModelMapper modelMapper;
 
-    @PostMapping("/login")
+    @PostMapping("/api/login")
     public @ResponseBody ResponseEntity login(@RequestBody LoginDto loginDto, HttpSession session) {
         Optional<User> optionalUser = userService.findByEmailAndPassword(loginDto.getEmail(), loginDto.getPassword());
         if (optionalUser.isPresent()) {
