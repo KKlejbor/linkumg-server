@@ -1,4 +1,4 @@
-package pl.edu.umg.linkumg.controller;
+package pl.edu.umg.linkumg.controllers;
 
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
