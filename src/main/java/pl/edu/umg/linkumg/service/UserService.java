@@ -1,11 +1,10 @@
-package pl.edu.umg.linkumg.service.impl;
+package pl.edu.umg.linkumg.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 import pl.edu.umg.linkumg.models.User;
 import pl.edu.umg.linkumg.repositories.UserRepository;
-import pl.edu.umg.linkumg.service.IUserService;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +12,7 @@ import java.util.Optional;
 @Service
 @Data
 @AllArgsConstructor
-public class UserService implements IUserService {
+public class UserService implements IUserService{
     private UserRepository userRepository;
 
     @Override

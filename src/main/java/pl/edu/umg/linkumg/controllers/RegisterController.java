@@ -12,8 +12,8 @@ import pl.edu.umg.linkumg.dto.RegisterEmployerDto;
 import pl.edu.umg.linkumg.dto.RegisterStudentDto;
 import pl.edu.umg.linkumg.models.Employer;
 import pl.edu.umg.linkumg.models.Student;
-import pl.edu.umg.linkumg.service.impl.EmployerService;
-import pl.edu.umg.linkumg.service.impl.StudentService;
+import pl.edu.umg.linkumg.service.EmployerService;
+import pl.edu.umg.linkumg.service.StudentService;
 
 @RestController
 @AllArgsConstructor
@@ -22,7 +22,7 @@ public class RegisterController {
     private StudentService studentService;
     private ModelMapper modelMapper;
 
-    @PostMapping("/api/register/employer")
+    @PostMapping("/register/employer")
     public @ResponseBody ResponseEntity register(@RequestBody RegisterEmployerDto registerEmployerDto) {
         if (checkEmail(registerEmployerDto.getEmail()) && checkPassword(registerEmployerDto.getPassword()) && checkName(registerEmployerDto.getFirstname()) && checkName(registerEmployerDto.getLastname()) && registerEmployerDto.getUserRole() != null && registerEmployerDto.getUserRole().equals("employer")) {
             if (checkName(registerEmployerDto.getCompanyName()) && checkName(registerEmployerDto.getNIPNumber())) {
@@ -37,7 +37,7 @@ public class RegisterController {
         return new ResponseEntity("BAD_REQUEST", HttpStatus.BAD_REQUEST);
     }
 
-    @PostMapping("/api/register/student")
+    @PostMapping("/register/student")
     public @ResponseBody ResponseEntity registerStudent(@RequestBody RegisterStudentDto registerStudentDtoDto) {
         if (checkEmail(registerStudentDtoDto.getEmail()) && checkPassword(registerStudentDtoDto.getPassword()) && checkName(registerStudentDtoDto.getFirstname()) && checkName(registerStudentDtoDto.getLastname()) && registerStudentDtoDto.getUserRole() != null && registerStudentDtoDto.getUserRole().equals("student")) {
             if (registerStudentDtoDto.getIndexNumber() != 0 && checkName(registerStudentDtoDto.getFaculty())) {

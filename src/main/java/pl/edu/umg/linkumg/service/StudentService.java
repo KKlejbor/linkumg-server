@@ -1,10 +1,9 @@
-package pl.edu.umg.linkumg.service.impl;
+package pl.edu.umg.linkumg.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.umg.linkumg.models.Student;
 import pl.edu.umg.linkumg.repositories.StudentRepository;
-import pl.edu.umg.linkumg.service.IStudentService;
 
 import java.util.List;
 import java.util.Optional;

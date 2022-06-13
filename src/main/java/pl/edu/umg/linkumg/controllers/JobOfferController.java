@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/joboffers")
+@RequestMapping("/api/joboffer")
 public class JobOfferController {
     @Autowired
     private JobOfferService jobOfferService;
