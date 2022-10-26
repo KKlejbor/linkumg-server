@@ -1,31 +1,36 @@
 package pl.edu.umg.linkumg.service;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.edu.umg.linkumg.models.User;
 import pl.edu.umg.linkumg.repositories.UserRepository;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
-@Data
-@AllArgsConstructor
-public class UserService implements IUserService{
+public class UserService{
+
     private UserRepository userRepository;
 
-    @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
+    @Autowired
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    @Override
-    public Optional<User> findById(int id) {
+    // TODO: not used
+    public Page<User> findUsersPage(Pageable pageable){
+        return userRepository.findAll(pageable);
+    }
+
+    // TODO: not used
+    public Optional<User> findById(UUID id) {
         return userRepository.findById(id);
     }
 
-    @Override
+    // TODO: not used
     public Optional<User> findByEmailAndPassword(String email, String password) {
         return userRepository.findByEmailAndPassword(email, password);
     }

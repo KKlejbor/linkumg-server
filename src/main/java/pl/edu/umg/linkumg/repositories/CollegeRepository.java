@@ -1,8 +1,10 @@
 package pl.edu.umg.linkumg.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import pl.edu.umg.linkumg.models.College;
 
-public interface CollegeRepository extends JpaRepository<College, Integer> {
+import java.util.UUID;
+
+public interface CollegeRepository extends PagingAndSortingRepository<College, UUID> {
 
 }

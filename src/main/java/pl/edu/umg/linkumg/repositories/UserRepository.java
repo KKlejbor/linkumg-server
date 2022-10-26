@@ -1,15 +1,13 @@
 package pl.edu.umg.linkumg.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import pl.edu.umg.linkumg.models.User;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface UserRepository extends JpaRepository<User, Integer> {
-    List<User> findAll();
-
-    Optional<User> findById(int id);
+public interface UserRepository extends PagingAndSortingRepository<User, UUID> {
+    Optional<User> findById(UUID id);
 
     Optional<User> findByEmailAndPassword(String email, String password);
 }

@@ -1,8 +1,13 @@
 package pl.edu.umg.linkumg.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import pl.edu.umg.linkumg.models.Student;
 
-public interface StudentRepository extends JpaRepository<Student, Integer> {
+import java.util.Optional;
+import java.util.UUID;
 
+public interface StudentRepository extends PagingAndSortingRepository<Student, UUID> {
+    Optional<Student> findById(UUID id);
+
+    Optional<Student> save(Student student);
 }

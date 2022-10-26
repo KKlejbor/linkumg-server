@@ -1,8 +1,10 @@
 package pl.edu.umg.linkumg.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import pl.edu.umg.linkumg.models.Announcement;
 
-public interface AnnouncementRepository extends JpaRepository<Announcement, Integer> {
+import java.util.UUID;
+
+public interface AnnouncementRepository extends PagingAndSortingRepository<Announcement, UUID> {
 
 }

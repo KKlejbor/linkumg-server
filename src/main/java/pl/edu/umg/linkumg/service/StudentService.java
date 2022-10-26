@@ -5,32 +5,36 @@ import org.springframework.stereotype.Service;
 import pl.edu.umg.linkumg.models.Student;
 import pl.edu.umg.linkumg.repositories.StudentRepository;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
-public class StudentService implements IStudentService {
+public class StudentService{
 
-    @Autowired
     private StudentRepository studentRepository;
 
-    @Override
-    public List<Student> findAll() {
-        return studentRepository.findAll();
+    @Autowired
+    public StudentService(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
     }
 
-    @Override
-    public Optional<Student> findById(int id) {
-        return studentRepository.findById(id);
+    // TODO: maybe should use user services and extend it when need
+//    public List<Student> findAll() {
+//        return studentRepository.findAll();
+//    }
+
+    public Student findById(UUID id) {
+        return studentRepository.findById(id).get();
     }
 
-    @Override
-    public Student saveOrUpdate(Student student) {
-        return studentRepository.save(student);
+    public Student save(Student student) {
+        return studentRepository.save(student).get();
     }
 
-    @Override
-    public void deleteById(int id) {
-        studentRepository.deleteById(id);
+    public Student update(){
+        return null;
+    }
+
+    public void deleteById(UUID id) {
+
     }
 }
