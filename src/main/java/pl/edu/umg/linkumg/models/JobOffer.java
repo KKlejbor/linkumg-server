@@ -1,10 +1,7 @@
 package pl.edu.umg.linkumg.models;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.Date;
@@ -12,6 +9,7 @@ import java.util.Date;
 @Entity(name="jobs_offers")
 @Data
 public class JobOffer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer offerId;
@@ -23,4 +21,7 @@ public class JobOffer {
     private Date addedDate;
     private Integer userId;
     private String pathToJobOfferImage;
+    @ManyToOne
+    private Employer employer;
+
 }

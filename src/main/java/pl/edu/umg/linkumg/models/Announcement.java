@@ -17,8 +17,7 @@ public class Announcement {
     private Date date;
     private String pathToAnnouncementImage;
     private String content;
-
     @ManyToOne
-    @JoinColumn(name = "college_id", nullable = false)
-    private User collegeId;
+    private College college;
+
 }
