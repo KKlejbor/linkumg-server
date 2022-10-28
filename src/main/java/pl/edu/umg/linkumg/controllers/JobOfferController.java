@@ -1,34 +1,40 @@
 package pl.edu.umg.linkumg.controllers;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import pl.edu.umg.linkumg.dto.JobOfferDto;
+import pl.edu.umg.linkumg.service.JobOfferService;
 
-// TODO: 27.10.2022  
+@RestController
+@RequestMapping("/jobOffers")
+@AllArgsConstructor
 public class JobOfferController {
+
+    private JobOfferService jobOfferService;
+
+    // TODO: 28/10/2022
     @PostMapping
-    public void makeJobOffer(){
+    public void makeJobOffer(@RequestBody JobOfferDto jobOfferDto){
+
+    }
+
+    @GetMapping("/{UUIDString}")
+    public void getJobOfferById(@PathVariable String UUIDString){
 
     }
 
     @GetMapping
-    public void getJobOfferById(){
+    public void getJobOfferPage(@RequestParam(defaultValue = "1") int page) {
 
     }
 
-    @GetMapping
-    public void getJobOfferPage() {
+    @PatchMapping("/{UUIDString}")
+    public void updateJobOffer(@PathVariable String UUIDString, @RequestBody JobOfferDto jobOfferDto){
 
     }
 
-    @PatchMapping
-    public void updateJobOffer(){
-
-    }
-
-    @DeleteMapping
-    public void removeJobOffer(){
+    @DeleteMapping("/{UUIDString}")
+    public void removeJobOffer(@PathVariable String UUIDString){
 
     }
 }

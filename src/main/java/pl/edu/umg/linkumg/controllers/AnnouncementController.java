@@ -7,12 +7,14 @@ import pl.edu.umg.linkumg.service.AnnouncementService;
 
 import java.util.UUID;
 
-@RestController("/announcements")
+@RestController
+@RequestMapping("/announcements")
 @RequiredArgsConstructor
 public class AnnouncementController {
 
     private AnnouncementService announcementService;
 
+    // TODO: 28/10/2022
     @PostMapping
     public void createAnnouncement(@RequestBody AnnouncementDto announcementDto) {
 

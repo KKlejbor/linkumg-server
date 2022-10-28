@@ -1,34 +1,42 @@
 package pl.edu.umg.linkumg.controllers;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import pl.edu.umg.linkumg.dto.PrivateLessonDto;
+import pl.edu.umg.linkumg.service.PrivateLessonService;
 
-// TODO: 27.10.2022  
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/privateLessons")
+@AllArgsConstructor
 public class PrivateLessonController {
+
+    private PrivateLessonService privateLessonService;
+
+    // TODO: 28/10/2022
     @PostMapping
-    public void makePrivateLesson(){
+    public void makePrivateLesson(@RequestBody PrivateLessonDto privateLessonDto){
+
+    }
+
+    @GetMapping("/{UUIDString}")
+    public void getPrivateLessonById(@PathVariable String UUIDString){
 
     }
 
     @GetMapping
-    public void getPrivateLessonById(){
+    public void getPrivateLessonPage(@RequestParam(defaultValue = "1") int page) {
 
     }
 
-    @GetMapping
-    public void getPrivateLessonPage() {
+    @PatchMapping("/{UUIDString}")
+    public void updatePrivateLesson(@PathVariable String UUIDString, @RequestBody PrivateLessonDto privateLessonDto){
 
     }
 
-    @PatchMapping
-    public void updatePrivateLesson(){
-
-    }
-
-    @DeleteMapping
-    public void removePrivateLesson(){
+    @DeleteMapping("/{UUIDString}")
+    public void removePrivateLesson(@PathVariable String UUIDString){
 
     }
 }
