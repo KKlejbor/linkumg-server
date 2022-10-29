@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface UserRepository extends PagingAndSortingRepository<User, UUID> {
     Optional<User> findById(UUID id);
 
-    Optional<User> findByEmailAndPassword(String email, String password);
+    Optional<User> findByEmail(String email);
 }
