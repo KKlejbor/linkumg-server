@@ -1,8 +1,8 @@
 package pl.edu.umg.linkumg.models;
 
-import jakarta.persistence.*;
 import lombok.Data;
 
+import javax.persistence.*;
 import java.util.Date;
 
 @Entity

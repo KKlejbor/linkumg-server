@@ -3,15 +3,10 @@ package pl.edu.umg.linkumg.controllers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.edu.umg.linkumg.dto.*;
+import pl.edu.umg.linkumg.dto.RegisterDto;
 import pl.edu.umg.linkumg.service.UserService;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")

@@ -1,10 +1,10 @@
 package pl.edu.umg.linkumg.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import java.util.List;
 import java.util.UUID;
 

@@ -27,7 +27,7 @@ public class StudentService{
     }
 
     public Student save(Student student) {
-        return studentRepository.save(student).get();
+        return studentRepository.save(student);
     }
 
     public Student update(){

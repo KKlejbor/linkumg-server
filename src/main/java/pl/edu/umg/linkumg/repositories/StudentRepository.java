@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface StudentRepository extends PagingAndSortingRepository<Student, UUID> {
     Optional<Student> findById(UUID id);
 
-    Optional<Student> save(Student student);
+    Student save(Student student);
 }

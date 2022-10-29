@@ -5,8 +5,6 @@ import org.springframework.web.bind.annotation.*;
 import pl.edu.umg.linkumg.dto.PrivateLessonDto;
 import pl.edu.umg.linkumg.service.PrivateLessonService;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/privateLessons")
 @AllArgsConstructor
