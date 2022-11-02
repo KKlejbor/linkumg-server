@@ -41,12 +41,8 @@ public class PrivateLessonService {
 
     public PrivateLessonDto findPrivateLessonById(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
         return converter.privateLessonObjectToPrivateLessonDto(
-                privateLessonRepository.findById(converter.stringUUIDToUUID(stringUUID))
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        String.format("Private lesson with %s id not found.", stringUUID)
-                                )
-                        ));
+                checkPrivateLessonExists(stringUUID)
+        );
     }
 
     // TODO: findPage
@@ -95,17 +91,17 @@ public class PrivateLessonService {
                 );
     }
 
-    private Student checkStudentExists(String studentEmail) throws ResourceNotFoundException {
-        return (Student) userRepository.findByEmail(studentEmail)
+    private Student checkStudentExists(String email) throws ResourceNotFoundException {
+        return (Student) userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                String.format("User with email %s not found.", studentEmail)
+                                String.format("User with email %s not found.", email)
                         )
                 );
     }
 
     private void checkStudentHaveAccessToResource(Student student, PrivateLesson privateLesson) throws ResourceForbiddenException {
         if (!privateLesson.getStudentId().equals(student.getUserId()))
-            throw new ResourceForbiddenException(String.format("User with email %s is forbidden to use this resource."));
+            throw new ResourceForbiddenException(String.format("User with email %s is forbidden to use this resource.", student.getEmail()));
     }
 }

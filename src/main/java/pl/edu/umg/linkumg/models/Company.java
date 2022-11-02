@@ -36,4 +36,8 @@ public class Company extends User {
         this.nip = nip;
         this.jobOfferList = jobOfferList;
     }
+
+    public void addJobOffer(JobOffer jobOffer){
+        jobOfferList.add(jobOffer);
+    }
 }

@@ -39,7 +39,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .authorizeRequests((auth) -> auth
+                .authorizeRequests(auth -> auth
                         .anyRequest()
                         .authenticated()
                 )

@@ -5,6 +5,8 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import java.util.List;
 
 @Entity
 @Data
@@ -12,11 +14,14 @@ import javax.persistence.Entity;
 public class College extends User {
 
     private String faculty;
-//    @OneToMany
-//    private List<Announcement> announcementList;
-
+    @OneToMany
+    private List<Announcement> announcementList;
 
     public College(@NonNull String email, @NonNull String password) {
         super(email, password);
     }
+
+    public void addAnnouncement(Announcement announcement){
+        announcementList.add(announcement);
+    };
 }
