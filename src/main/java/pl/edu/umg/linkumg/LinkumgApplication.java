@@ -6,17 +6,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import pl.edu.umg.linkumg.dto.SocialDto;
-import pl.edu.umg.linkumg.dto.StudentDto;
+import pl.edu.umg.linkumg.dto.RegisterDto;
+import pl.edu.umg.linkumg.models.Social;
 import pl.edu.umg.linkumg.models.Student;
-import pl.edu.umg.linkumg.repositories.StudentRepository;
+import pl.edu.umg.linkumg.repositories.PrivateLessonRepository;
 import pl.edu.umg.linkumg.repositories.UserRepository;
 import pl.edu.umg.linkumg.security.RsaKeyProperties;
 import pl.edu.umg.linkumg.service.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @EnableConfigurationProperties(RsaKeyProperties.class)
 @SpringBootApplication
@@ -27,23 +26,40 @@ public class LinkumgApplication {
     }
 
     @Bean
-    CommandLineRunner commandLineRunner(StudentRepository studentRepository, PasswordEncoder passwordEncoder) {
+    CommandLineRunner commandLineRunner(UserService userService, UserRepository userRepository, PrivateLessonRepository privateLessonRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            studentRepository.save(
+            userService.register(
+                    new RegisterDto(
+                            "student",
+                            "studentemail",
+                            passwordEncoder.encode("password"))
+            );
+            Student student = userRepository.save(
                     new Student(
-                            UUID.randomUUID(),
-                            "email@email.com",
+                            null,
+                            "student",
                             passwordEncoder.encode("password"),
                             true,
-                            "firstname",
-                            "lastname",
-                            "hello",
-                            "role",
+                            "studentName",
+                            "description",
                             "",
+                            LocalDateTime.now(),
+                            LocalDateTime.now(),
+                            "studentLastName",
+                            LocalDate.now(),
+                            "111 111 111",
+                            new Social(
+                                    null,
+                                    "github",
+                                    "linkedin",
+                                    "facebook",
+                                    null
+                            ),
                             99999,
-                            "inf"
+                            "Inf"
                     )
             );
+            userRepository.save(student);
         };
     }
 }

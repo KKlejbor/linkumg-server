@@ -1,84 +1,81 @@
 package pl.edu.umg.linkumg.controllers;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import pl.edu.umg.linkumg.dto.JwtRequest;
 import pl.edu.umg.linkumg.dto.RegisterDto;
+import pl.edu.umg.linkumg.exception.ResourceNotFoundException;
+import pl.edu.umg.linkumg.exception.UUIDConversionException;
 import pl.edu.umg.linkumg.service.UserService;
 
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.stream.Collectors;
+import javax.annotation.security.PermitAll;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
 @AllArgsConstructor
-//@Log4j2
 public class UserController {
 
     private static Logger LOGGER = LogManager.getLogger(UserController.class);
 
     private UserService userService;
 
+    // TODO: 31.10.2022
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody JwtRequest jwtRequest) {
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @PermitAll
+    public String login(@RequestBody JwtRequest jwtRequest) {
         LOGGER.info("Trying to login with {}", jwtRequest);
         String token = userService.generateToken(jwtRequest);
         LOGGER.info("Generated token {}", token);
-        return ResponseEntity.ok().body(token);
+        return token;
     }
 
-    @GetMapping("/student")
-    public ResponseEntity student(Principal principal){
-        return ResponseEntity.ok().body(String.format("Hello %s", principal.getName()));
-    }
-
+    // TODO: 31.10.2022  
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody RegisterDto registerDto) {
-        return ResponseEntity.ok().body(registerDto);
+    @ResponseStatus(HttpStatus.CREATED)
+    @PermitAll
+    public Object register(@RequestBody RegisterDto registerDto) {
+        userService.register(registerDto);
+        return registerDto;
     }
 
+    // TODO: 31.10.2022  
     @PostMapping("/remindPassword/{email}")
     public ResponseEntity remindPassword(@PathVariable String email) {
         return null;
     }
 
+    // TODO: 31.10.2022  
     @PatchMapping("/changePassword/{UUIDString}")
     public void changePassword(@PathVariable String UUIDString) {
 
     }
 
-    @GetMapping("/{UUIDString}")
-    public ResponseEntity getUser(@PathVariable String UUIDString) {
+    @GetMapping("/{stringUUID}")
+    @ResponseStatus(HttpStatus.OK)
+    public Object getUser(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
+            return userService.findUserById(stringUUID);
+    }
+
+    // TODO: 31.10.2022  
+    @GetMapping
+    public List<Object> getUsers(@RequestParam(defaultValue = "1") int page) {
+//        return userService.findUsersPage(page);
         return null;
     }
 
-    @GetMapping
-    public ResponseEntity getUsers(JwtAuthenticationToken principal) {
-        LOGGER.info(principal);
-        LOGGER.info(principal.getAuthorities());
-        Collection<String> authorities = principal.getAuthorities()
-                .stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-        LOGGER.info(authorities);
-        return ResponseEntity.ok().body(new ArrayList());
-    }
-
+    // TODO: 31.10.2022  
     @PatchMapping
     public ResponseEntity updateUser() {
         return null;
     }
 
+    // TODO: 31.10.2022  
     @DeleteMapping("/{UUIDString}")
     public void deleteUser(@PathVariable String UUIDString) {
 

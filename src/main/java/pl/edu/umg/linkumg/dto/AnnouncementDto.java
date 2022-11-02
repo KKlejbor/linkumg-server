@@ -1,5 +1,5 @@
 package pl.edu.umg.linkumg.dto;
 
-// TODO: 27.10.2022  
-public class AnnouncementDto {
+public record AnnouncementDto(String id, String title, String pathToAnnouncementImage, String content, String createdAt,
+                              String lastUpdatedAt, String collegeId) {
 }

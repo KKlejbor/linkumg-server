@@ -1,23 +1,29 @@
 package pl.edu.umg.linkumg.models;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
-import java.util.Date;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name="announcements")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Announcement {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer announcementId;
+    @GeneratedValue(generator = "UUID")
+    private UUID announcementId;
     private String title;
-    private Date date;
     private String pathToAnnouncementImage;
     private String content;
-    @ManyToOne
-    private College college;
-
+    private LocalDateTime createdAt;
+    private LocalDateTime lastUpdatedAt;
+    private UUID collegeId;
 }
