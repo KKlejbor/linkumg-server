@@ -35,7 +35,7 @@ public class UserController {
         return token;
     }
 
-    // TODO: 31.10.2022  
+    // TODO: 31.10.2022  all fields
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     @PermitAll

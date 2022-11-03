@@ -21,4 +21,5 @@ public class Social {
     private String linkedin;
     private String facebook;
     private String instagram;
+    // TODO: 03.11.2022 wlasna strona 
 }

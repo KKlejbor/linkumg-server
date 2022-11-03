@@ -23,6 +23,7 @@ public class JobOffer {
     private String title;
     private Integer salaryDown;
     private Integer salaryUp;
+    // TODO: 03.11.2022 location
     private String city;
     private String address;
     private Date addedDate;
