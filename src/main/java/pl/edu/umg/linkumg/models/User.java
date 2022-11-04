@@ -12,8 +12,8 @@ import java.util.UUID;
 @Entity(name = "users")
 @Data
 @NoArgsConstructor
-@RequiredArgsConstructor
 @AllArgsConstructor
+@RequiredArgsConstructor
 public abstract class User{
     @Id
     @GeneratedValue(generator = "UUID")
@@ -24,6 +24,8 @@ public abstract class User{
     @NonNull
     private String password;
     private boolean active;
+    private boolean banned;
+    @NonNull
     private String name;
     private String description;
     private String pathToAvatar;

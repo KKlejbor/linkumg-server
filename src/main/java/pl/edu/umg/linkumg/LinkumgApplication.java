@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import pl.edu.umg.linkumg.dto.RegisterDto;
 import pl.edu.umg.linkumg.models.Social;
 import pl.edu.umg.linkumg.models.Student;
 import pl.edu.umg.linkumg.repositories.PrivateLessonRepository;
@@ -28,18 +27,13 @@ public class LinkumgApplication {
     @Bean
     CommandLineRunner commandLineRunner(UserService userService, UserRepository userRepository, PrivateLessonRepository privateLessonRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            userService.register(
-                    new RegisterDto(
-                            "student",
-                            "studentemail",
-                            passwordEncoder.encode("password"))
-            );
             Student student = userRepository.save(
                     new Student(
                             null,
                             "student",
                             passwordEncoder.encode("password"),
                             true,
+                            false,
                             "studentName",
                             "description",
                             "",

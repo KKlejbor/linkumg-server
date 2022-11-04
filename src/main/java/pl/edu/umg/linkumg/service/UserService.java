@@ -3,6 +3,7 @@ package pl.edu.umg.linkumg.service;
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import pl.edu.umg.linkumg.dto.*;
 import pl.edu.umg.linkumg.exception.ResourceNotFoundException;
+import pl.edu.umg.linkumg.exception.ResourceViolationException;
 import pl.edu.umg.linkumg.exception.UUIDConversionException;
 import pl.edu.umg.linkumg.models.College;
 import pl.edu.umg.linkumg.models.Company;
@@ -36,36 +38,45 @@ public class UserService {
     private UserRepository userRepository;
     private ObjectDtoConverter converter;
 
-    // TODO: return UserDto
-    public User register(RegisterDto registerDto) {
-        if (registerDto.type().equals(Student.class.getSimpleName().toLowerCase())) {
-            User student =
-                    new Student(
-                            registerDto.email(),
-                            passwordEncoder.encode(registerDto.password())
-                    );
-            student.setCreatedAt(LocalDateTime.now());
-            student.setLastUpdatedAt(LocalDateTime.now());
-            return userRepository.save(student);
-        } else if (registerDto.type().equals(Company.class.getSimpleName().toLowerCase())) {
-            User employer =
-                    new Company(
-                            registerDto.email(),
-                            passwordEncoder.encode(registerDto.password())
-                    );
-            return userRepository.save(employer);
+    public void registerStudent(StudentRegisterDto studentRegisterDto) throws ResourceViolationException {
+        Student student =
+                new Student(
+                        studentRegisterDto.email(),
+                        passwordEncoder.encode(studentRegisterDto.password()),
+                        studentRegisterDto.name(),
+                        studentRegisterDto.lastName(),
+                        studentRegisterDto.indexNumber(),
+                        studentRegisterDto.faculty()
+                );
+
+        student.setCreatedAt(LocalDateTime.now());
+        student.setLastUpdatedAt(LocalDateTime.now());
+
+        try {
+            userRepository.save(student);
         }
-        // TODO: can we create college account?
-        else if (registerDto.type().equals(College.class.getSimpleName().toLowerCase())) {
-            User college =
-                    new College(
-                            registerDto.email(),
-                            passwordEncoder.encode(registerDto.password())
-                    );
-            return userRepository.save(college);
-        } else {
-            // FIXME: create custom exception
-            throw new RuntimeException("Wrong account type.");
+        catch (DataIntegrityViolationException e){
+            throw new ResourceViolationException(String.format("Email %s already exists.", studentRegisterDto.email()));
+        }
+    }
+
+    public void registerCompany(CompanyRegisterDto companyRegisterDto) throws ResourceViolationException {
+        Company company =
+                new Company(
+                        companyRegisterDto.email(),
+                        passwordEncoder.encode(companyRegisterDto.password()),
+                        companyRegisterDto.name(),
+                        companyRegisterDto.nip()
+                );
+
+        company.setCreatedAt(LocalDateTime.now());
+        company.setLastUpdatedAt(LocalDateTime.now());
+
+        try {
+            userRepository.save(company);
+        }
+        catch (DataIntegrityViolationException e){
+            throw new ResourceViolationException(String.format("Email %s already exists.", companyRegisterDto.email()));
         }
     }
 
@@ -91,6 +102,7 @@ public class UserService {
             // FIXME: create custom exception
             throw new RuntimeException("User isn't activated.");
         }
+        // TODO: userIsBanned
 
         Instant now = Instant.now();
         String scope = user

@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.edu.umg.linkumg.dto.JwtRequest;
-import pl.edu.umg.linkumg.dto.RegisterDto;
 import pl.edu.umg.linkumg.exception.ResourceNotFoundException;
 import pl.edu.umg.linkumg.exception.UUIDConversionException;
 import pl.edu.umg.linkumg.service.UserService;
@@ -24,7 +23,7 @@ public class UserController {
 
     private UserService userService;
 
-    // TODO: 31.10.2022
+    // TODO: refreshToken
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PermitAll
@@ -33,15 +32,6 @@ public class UserController {
         String token = userService.generateToken(jwtRequest);
         LOGGER.info("Generated token {}", token);
         return token;
-    }
-
-    // TODO: 31.10.2022  all fields
-    @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    @PermitAll
-    public Object register(@RequestBody RegisterDto registerDto) {
-        userService.register(registerDto);
-        return registerDto;
     }
 
     // TODO: 31.10.2022  
@@ -75,9 +65,9 @@ public class UserController {
         return null;
     }
 
-    // TODO: 31.10.2022  
-    @DeleteMapping("/{UUIDString}")
-    public void deleteUser(@PathVariable String UUIDString) {
+    // TODO: ban user
+    @PatchMapping("/{UUIDString}")
+    public void banUser (@PathVariable String UUIDString) {
 
     }
 }

@@ -9,6 +9,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,16 +26,17 @@ public class Company extends User {
     @OneToMany
     private List<JobOffer> jobOfferList;
 
-    public Company(@NonNull String email, @NonNull String password) {
-        super(email, password);
+    public Company(@NonNull String email, @NonNull String password, @NonNull String name, String nip) {
+        super(email, password, name);
+        this.nip = nip;
     }
 
-    public Company(UUID userId, @NonNull String email, @NonNull String password, boolean active, String name, String description, String pathToAvatar, LocalDateTime createdAt, LocalDateTime lastUpdateAt, String phoneNumber, Social socials, String nip, List<JobOffer> jobOfferList) {
-        super(userId, email, password, active, name, description, pathToAvatar, createdAt, lastUpdateAt);
+    public Company(UUID userId, @NonNull String email, @NonNull String password, boolean active, boolean banned, String name, String description, String pathToAvatar, LocalDateTime createdAt, LocalDateTime lastUpdateAt, String phoneNumber, Social socials, String nip) {
+        super(userId, email, password, active, banned, name, description, pathToAvatar, createdAt, lastUpdateAt);
         this.phoneNumber = phoneNumber;
         this.socials = socials;
         this.nip = nip;
-        this.jobOfferList = jobOfferList;
+        this.jobOfferList = new ArrayList<>();
     }
 
     public void addJobOffer(JobOffer jobOffer){

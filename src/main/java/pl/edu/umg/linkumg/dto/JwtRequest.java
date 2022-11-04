@@ -1,4 +1,6 @@
 package pl.edu.umg.linkumg.dto;
 
-public record JwtRequest(String email, String password) {
+import java.io.Serializable;
+
+public record JwtRequest(String email, String password) implements Serializable {
 }
