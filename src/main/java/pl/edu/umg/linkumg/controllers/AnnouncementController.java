@@ -1,6 +1,10 @@
 package pl.edu.umg.linkumg.controllers;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +15,7 @@ import pl.edu.umg.linkumg.exception.UUIDConversionException;
 import pl.edu.umg.linkumg.service.AnnouncementService;
 
 import javax.annotation.security.RolesAllowed;
+import java.util.List;
 
 @RestController
 @RequestMapping("/announcements")
@@ -32,10 +37,14 @@ public class AnnouncementController {
         return announcementService.findAnnouncementById(stringUUID);
     }
 
-    // TODO: findPage
     @GetMapping
-    public void getAnnouncementPage(@RequestParam(defaultValue = "1") int page) {
-        announcementService.findAnnouncementPage(page);
+    public List<AnnouncementDto> getAnnouncementPage(@RequestParam(defaultValue = "1") int page,
+                                                     @RequestParam(defaultValue = "10") int pageSize,
+                                                     @RequestParam(defaultValue = "asc") String direction,
+                                                     @RequestParam(defaultValue = "") String search) {
+        Direction directionObj = direction.equals("asc") ? Direction.ASC : Direction.DESC;
+        Pageable pageable = PageRequest.of(page - 1, pageSize).withSort(directionObj, "createdAt");
+        return announcementService.findAnnouncementsPage(pageable, search).getContent();
     }
 
     @PatchMapping("/{stringUUID}")

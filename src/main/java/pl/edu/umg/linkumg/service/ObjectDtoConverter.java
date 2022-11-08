@@ -14,7 +14,7 @@ import java.util.UUID;
 @Component
 public class ObjectDtoConverter {
 
-    public UUID stringUUIDToUUID(String stringUUID) throws UUIDConversionException {
+    public static UUID stringUUIDToUUID(String stringUUID) throws UUIDConversionException {
         try {
             return UUID.fromString(stringUUID);
         } catch (IllegalArgumentException exception) {
@@ -22,7 +22,7 @@ public class ObjectDtoConverter {
         }
     }
 
-    public Announcement announcementDtoToAnnouncementObject(AnnouncementDto announcementDto) throws UUIDConversionException {
+    public static Announcement announcementDtoToAnnouncementObject(AnnouncementDto announcementDto) throws UUIDConversionException {
         return new Announcement(
                 stringUUIDToUUID(announcementDto.id()),
                 announcementDto.title(),
@@ -34,7 +34,7 @@ public class ObjectDtoConverter {
         );
     }
 
-    public AnnouncementDto announcementObjectToAnnouncementDto(Announcement announcement) {
+    public static AnnouncementDto announcementObjectToAnnouncementDto(Announcement announcement) {
         return new AnnouncementDto(
                 announcement.getAnnouncementId().toString(),
                 announcement.getTitle(),
@@ -46,15 +46,15 @@ public class ObjectDtoConverter {
         );
     }
 
-    public JobOffer jobOfferDtoToJobOfferObject(JobOfferDto jobOfferDto) {
+    public static JobOffer jobOfferDtoToJobOfferObject(JobOfferDto jobOfferDto) {
         return null;
     }
 
-    public JobOfferDto jobOfferObjectToJobOfferDto(JobOffer jobOffer) {
+    public static JobOfferDto jobOfferObjectToJobOfferDto(JobOffer jobOffer) {
         return null;
     }
 
-    public PrivateLesson privateLessonDtoToPrivateLessonObject(PrivateLessonDto privateLessonDto) {
+    public static PrivateLesson privateLessonDtoToPrivateLessonObject(PrivateLessonDto privateLessonDto) {
         return new PrivateLesson(
                 privateLessonDto.lessonId(),
                 privateLessonDto.title(),
@@ -68,7 +68,7 @@ public class ObjectDtoConverter {
         );
     }
 
-    public PrivateLessonDto privateLessonObjectToPrivateLessonDto(PrivateLesson privateLesson) {
+    public static PrivateLessonDto privateLessonObjectToPrivateLessonDto(PrivateLesson privateLesson) {
         return new PrivateLessonDto(
                 privateLesson.getLessonId(),
                 privateLesson.getTitle(),

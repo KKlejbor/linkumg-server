@@ -1,6 +1,8 @@
 package pl.edu.umg.linkumg.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.edu.umg.linkumg.dto.AnnouncementDto;
 import pl.edu.umg.linkumg.exception.ResourceForbiddenException;
@@ -40,13 +42,20 @@ public class AnnouncementService {
     }
 
     public AnnouncementDto findAnnouncementById(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-        return converter.announcementObjectToAnnouncementDto(
-                checkAnnouncementExists(stringUUID)
-        );
+        return converter.announcementObjectToAnnouncementDto(checkAnnouncementExists(stringUUID));
     }
 
     // TODO: findPage
-    public void findAnnouncementPage(int page) {
+    public Page<AnnouncementDto> findAnnouncementsPage(Pageable pageable, String search) {
+        Page<Announcement> announcementsPage = null;
+
+        if (search.isEmpty()) {
+            announcementRepository.findAll(pageable);
+        } else {
+            announcementRepository.findAllByTitleOrContentContaining(pageable, search, search);
+        }
+
+        return announcementsPage.map(ObjectDtoConverter::announcementObjectToAnnouncementDto);
     }
 
     public AnnouncementDto updateAnnouncement(String stringUUID, AnnouncementDto announcementDto, String collegeEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {

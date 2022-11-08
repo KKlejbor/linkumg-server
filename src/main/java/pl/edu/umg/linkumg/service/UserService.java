@@ -15,6 +15,7 @@ import pl.edu.umg.linkumg.dto.*;
 import pl.edu.umg.linkumg.exception.ResourceNotFoundException;
 import pl.edu.umg.linkumg.exception.ResourceViolationException;
 import pl.edu.umg.linkumg.exception.UUIDConversionException;
+import pl.edu.umg.linkumg.exception.UserIsNotActivatedException;
 import pl.edu.umg.linkumg.models.College;
 import pl.edu.umg.linkumg.models.Company;
 import pl.edu.umg.linkumg.models.Student;
@@ -54,8 +55,7 @@ public class UserService {
 
         try {
             userRepository.save(student);
-        }
-        catch (DataIntegrityViolationException e){
+        } catch (DataIntegrityViolationException e) {
             throw new ResourceViolationException(String.format("Email %s already exists.", studentRegisterDto.email()));
         }
     }
@@ -74,22 +74,27 @@ public class UserService {
 
         try {
             userRepository.save(company);
-        }
-        catch (DataIntegrityViolationException e){
+        } catch (DataIntegrityViolationException e) {
             throw new ResourceViolationException(String.format("Email %s already exists.", companyRegisterDto.email()));
         }
     }
 
     // TODO: activate
-    public void activate() {
-//        userRepository.findById(id)
-//        userRepository.save()
+    public void activate(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
+        User user = userRepository.findById(converter.stringUUIDToUUID(stringUUID))
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                String.format("User with id %s not found.", stringUUID)
+                        )
+                );
+        user.setActive(true);
+        userRepository.save(user);
     }
 
     // TODO: remaindPassword
 
     // TODO: returnTokenDto
-    public String generateToken(JwtRequest jwtRequest) {
+    public String generateToken(JwtRequest jwtRequest) throws UserIsNotActivatedException {
         User user =
                 userRepository
                         .findByEmail(jwtRequest.email())
@@ -100,9 +105,12 @@ public class UserService {
             throw new BadCredentialsException("Bad credentials");
         if (!user.isActive()) {
             // FIXME: create custom exception
-            throw new RuntimeException("User isn't activated.");
+            throw new UserIsNotActivatedException(String.format("User %s isn't activated.", jwtRequest.email()));
         }
         // TODO: userIsBanned
+        if (user.isBanned()) {
+            throw new RuntimeException(String.format("User %s is banned.", jwtRequest.email()));
+        }
 
         Instant now = Instant.now();
         String scope = user
