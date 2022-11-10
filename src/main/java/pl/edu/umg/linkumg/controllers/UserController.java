@@ -1,20 +1,17 @@
 package pl.edu.umg.linkumg.controllers;
 
 import lombok.AllArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import pl.edu.umg.linkumg.dto.JwtRequest;
-import pl.edu.umg.linkumg.exception.ResourceNotFoundException;
-import pl.edu.umg.linkumg.exception.UUIDConversionException;
-import pl.edu.umg.linkumg.exception.UserIsNotActivatedException;
+import pl.edu.umg.linkumg.dto.PasswordChangeDto;
+import pl.edu.umg.linkumg.dto.TokenDto;
+import pl.edu.umg.linkumg.exception.*;
 import pl.edu.umg.linkumg.models.User;
 import pl.edu.umg.linkumg.service.UserService;
 
-import javax.annotation.security.PermitAll;
 import java.util.List;
 
 @RestController
@@ -22,55 +19,73 @@ import java.util.List;
 @AllArgsConstructor
 public class UserController {
 
-    private static Logger LOGGER = LogManager.getLogger(UserController.class);
-
     private UserService userService;
 
-    // TODO: refreshToken
+    /**
+     * @param jwtRequest
+     * @return {@link TokenDto}
+     * @throws UserIsNotActivatedException
+     * @throws UserIsBannedException
+     * @throws UserBadCredentialsException
+     */
     @PostMapping("/login")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    @PermitAll
-    public String login(@RequestBody JwtRequest jwtRequest) throws UserIsNotActivatedException {
-        String token = userService.generateToken(jwtRequest);
-        return token;
+    public ResponseEntity<TokenDto> login(@RequestBody JwtRequest jwtRequest) throws UserIsNotActivatedException, UserIsBannedException, UserBadCredentialsException {
+        return ResponseEntity
+                .accepted()
+                .body(userService.generateToken(jwtRequest));
     }
 
+//    @PostMapping("/refreshToken")
+// public ResponseEntity<?> (){}
+
+    public void logout(){
+
+    }
+
+    /**
+     * @param stringUUID
+     * @return
+     * @throws ResourceNotFoundException
+     * @throws UUIDConversionException
+     */
     @GetMapping("/{stringUUID}")
-    @ResponseStatus(HttpStatus.OK)
-    public Object getUser(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-            return userService.findUserById(stringUUID);
-    }
-
-    // TODO: 31.10.2022  
-    @GetMapping
-    public List<Object> getUsers(@RequestParam(defaultValue = "1") int page) {
-//        return userService.findUsersPage(page);
-        return null;
+    public ResponseEntity<?> getUser(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
+        return ResponseEntity
+                .ok()
+                .body(userService.findUserById(stringUUID));
     }
 
     // TODO: 31.10.2022
-    @PostMapping("/remindPassword/{email}")
-    @ResponseStatus(HttpStatus.OK)
-    @PermitAll
-    public void remindPassword(@PathVariable String email) {
+    @GetMapping
+    public ResponseEntity<List<?>> getUsers(@RequestParam(defaultValue = "1") int page) {
+//        return userService.findUsersPage(page);
+        return ResponseEntity
+                .ok()
+                .body(null);
     }
 
-//    @PatchMapping("/changePassword")
-//    @ResponseStatus(HttpStatus.OK)
-//    @PermitAll
-//    public void changePassword(@ResponseBody PasswordChangeDto passwordChangeDto, Authentication authentication) {
-//        userService.changePassword(passwordChangeDto, authentication.getName());
+    @PostMapping("/remindPassword/{email}")
+    public ResponseEntity.HeadersBuilder<?> remindPassword(@PathVariable String email) {
+        userService.remaindPassword(email);
+        return ResponseEntity.noContent();
+    }
+
+    @PatchMapping("/changePassword/{stringUUID}")
+    public ResponseEntity.HeadersBuilder<?> changePassword(@PathVariable String stringUUID, @RequestBody PasswordChangeDto passwordChangeDto, Authentication authentication) throws ResourceNotFoundException, UUIDConversionException {
+        userService.changePassword(stringUUID, passwordChangeDto, authentication.getName());
+        return ResponseEntity.noContent();
+    }
+
+//    @PatchMapping
+//    public User updateUser(@RequestBody , Authentication authentication) {
+//        return ResponseEntity
+//                .ok()
+//                .body(userService.updateUser(authentication.getName()));
 //    }
 
-    // TODO: 31.10.2022  
-    @PatchMapping
-    public User updateUser(Authentication authentication) {
-        return null;
-    }
-
-    // TODO: ban user
-    @PatchMapping("/{UUIDString}")
-    public void banUser (@PathVariable String UUIDString) {
-
+    @PatchMapping("/ban/{stringUUID}")
+    public ResponseEntity.HeadersBuilder<?> banUser(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
+        return ResponseEntity.noContent();
+//                .body(userService.banUser(stringUUID));
     }
 }

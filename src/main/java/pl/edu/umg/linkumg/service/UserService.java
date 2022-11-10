@@ -1,10 +1,7 @@
 package pl.edu.umg.linkumg.service;
 
 import lombok.AllArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -12,10 +9,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import pl.edu.umg.linkumg.dto.*;
-import pl.edu.umg.linkumg.exception.ResourceNotFoundException;
-import pl.edu.umg.linkumg.exception.ResourceViolationException;
-import pl.edu.umg.linkumg.exception.UUIDConversionException;
-import pl.edu.umg.linkumg.exception.UserIsNotActivatedException;
+import pl.edu.umg.linkumg.exception.*;
 import pl.edu.umg.linkumg.models.College;
 import pl.edu.umg.linkumg.models.Company;
 import pl.edu.umg.linkumg.models.Student;
@@ -31,85 +25,70 @@ import java.util.Locale;
 @AllArgsConstructor
 public class UserService {
 
-    private static Logger LOGGER = LogManager.getLogger(UserService.class);
-
     private final JwtEncoder encoder;
     private final PasswordEncoder passwordEncoder;
 
     private UserRepository userRepository;
-    private ObjectDtoConverter converter;
 
     public void registerStudent(StudentRegisterDto studentRegisterDto) throws ResourceViolationException {
-        Student student =
-                new Student(
-                        studentRegisterDto.email(),
-                        passwordEncoder.encode(studentRegisterDto.password()),
-                        studentRegisterDto.name(),
-                        studentRegisterDto.lastName(),
-                        studentRegisterDto.indexNumber(),
-                        studentRegisterDto.faculty()
-                );
+        Student student = new Student(
+                studentRegisterDto.email(),
+                passwordEncoder.encode(studentRegisterDto.password()),
+                studentRegisterDto.name(),
+                studentRegisterDto.lastName(),
+                studentRegisterDto.indexNumber(),
+                studentRegisterDto.faculty()
+        );
 
         student.setCreatedAt(LocalDateTime.now());
         student.setLastUpdatedAt(LocalDateTime.now());
 
-        try {
-            userRepository.save(student);
-        } catch (DataIntegrityViolationException e) {
-            throw new ResourceViolationException(String.format("Email %s already exists.", studentRegisterDto.email()));
-        }
+        saveNewInDB(student);
     }
 
     public void registerCompany(CompanyRegisterDto companyRegisterDto) throws ResourceViolationException {
-        Company company =
-                new Company(
-                        companyRegisterDto.email(),
-                        passwordEncoder.encode(companyRegisterDto.password()),
-                        companyRegisterDto.name(),
-                        companyRegisterDto.nip()
-                );
+        Company company = new Company(
+                companyRegisterDto.email(),
+                passwordEncoder.encode(companyRegisterDto.password()),
+                companyRegisterDto.name(),
+                companyRegisterDto.nip()
+        );
 
         company.setCreatedAt(LocalDateTime.now());
         company.setLastUpdatedAt(LocalDateTime.now());
 
-        try {
-            userRepository.save(company);
-        } catch (DataIntegrityViolationException e) {
-            throw new ResourceViolationException(String.format("Email %s already exists.", companyRegisterDto.email()));
-        }
+        saveNewInDB(company);
     }
 
-    // TODO: activate
-    public void activate(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
-        User user = userRepository.findById(converter.stringUUIDToUUID(stringUUID))
+    // TODO:
+    public void registerCollege(CollegeRegisterDto collegeRegisterDto) throws ResourceViolationException {
+        College college = new College(
+
+        );
+
+        saveNewInDB(college);
+    }
+
+    public void remaindPassword(String email) {
+        userRepository.findByEmail(email);
+        // TODO: remaindPassword
+    }
+
+    // TODO: refreshToken
+    public TokenDto generateToken(JwtRequest jwtRequest) throws UserIsNotActivatedException, UserBadCredentialsException, UserIsBannedException {
+        User user = userRepository
+                .findByEmail(jwtRequest.email())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                String.format("User with id %s not found.", stringUUID)
-                        )
-                );
-        user.setActive(true);
-        userRepository.save(user);
-    }
-
-    // TODO: remaindPassword
-
-    // TODO: returnTokenDto
-    public String generateToken(JwtRequest jwtRequest) throws UserIsNotActivatedException {
-        User user =
-                userRepository
-                        .findByEmail(jwtRequest.email())
-                        .orElseThrow(() -> new UsernameNotFoundException(String
-                                .format("User with email %s not found.", jwtRequest.email())));
-        LOGGER.info("User found in database {}", user);
+                        new UsernameNotFoundException(
+                                String.format("User with email %s not found.", jwtRequest.email())
+                        ));
         if (!passwordEncoder.matches(jwtRequest.password(), user.getPassword()))
-            throw new BadCredentialsException("Bad credentials");
+            throw new UserBadCredentialsException("Bad credentials.");
         if (!user.isActive()) {
-            // FIXME: create custom exception
             throw new UserIsNotActivatedException(String.format("User %s isn't activated.", jwtRequest.email()));
         }
-        // TODO: userIsBanned
         if (user.isBanned()) {
-            throw new RuntimeException(String.format("User %s is banned.", jwtRequest.email()));
+            throw new UserIsBannedException(String.format("User %s is banned.", jwtRequest.email()));
         }
 
         Instant now = Instant.now();
@@ -117,7 +96,6 @@ public class UserService {
                 .getClass()
                 .getSimpleName()
                 .toUpperCase(Locale.ROOT);
-        LOGGER.info("User roles is {}", scope);
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
@@ -125,19 +103,17 @@ public class UserService {
                 .subject(jwtRequest.email())
                 .claim("scope", scope)
                 .build();
-        return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+
+        return new TokenDto(
+                "bearer",
+                this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue(),
+                null
+        );
     }
 
-    // TODO: update
-    // TODO: changePassword
     // TODO: findUserById
     public Object findUserById(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-        User user = userRepository.findById(converter.stringUUIDToUUID(stringUUID))
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                String.format("User with id %s not found.", stringUUID)
-                        )
-                );
+        User user = findUserFromDBById(stringUUID);
 
         if (user instanceof Student student) {
             return new StudentDto(
@@ -199,4 +175,50 @@ public class UserService {
 //    public Page<User> findUsersPage(Pageable pageable) {
 //        return userRepository.findAll(pageable);
 //    }
+
+    // TODO: activate
+    public void activate(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
+        User user = findUserFromDBById(stringUUID);
+        user.setActive(true);
+        userRepository.save(user);
+    }
+
+    public void updateUser() {
+        // TODO: update
+    }
+
+    public void changePassword(String stringUUID, PasswordChangeDto passwordChangeDto, String userEmail) throws ResourceNotFoundException, UUIDConversionException {
+        User user = findUserFromDBById(stringUUID);
+        if(user.getEmail().equals(userEmail)){
+            throw new RuntimeException("User can only change own, profile.");
+        }
+        user.setPassword(passwordEncoder.encode(passwordChangeDto.password()));
+        userRepository.save(user);
+    }
+
+    public void banUser(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
+        User user = findUserFromDBById(stringUUID);
+        user.setBanned(true);
+        userRepository.save(user);
+    }
+
+    private void saveNewInDB(User user) throws ResourceViolationException {
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new ResourceViolationException(
+                    String.format("Email %s already exists.", user.getEmail())
+            );
+        }
+    }
+
+    private User findUserFromDBById(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
+        return userRepository.findById(
+                ObjectDtoConverter.stringUUIDToUUID(stringUUID)
+        ).orElseThrow(() ->
+                new ResourceNotFoundException(
+                        String.format("User with id %s not found.", stringUUID)
+                )
+        );
+    }
 }

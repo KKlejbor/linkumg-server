@@ -41,10 +41,12 @@ public class WebSecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeRequests(auth -> auth
-                        .antMatchers(HttpMethod.POST, "/students").permitAll()
-                        .antMatchers(HttpMethod.POST, "/companies").permitAll()
-                        .antMatchers(HttpMethod.POST, "/users/login").permitAll()
-                        .anyRequest()
+                                .antMatchers(HttpMethod.POST, "/users/login").not().authenticated()
+                                .antMatchers(HttpMethod.POST, "/users/remindPassword/{email}").not().authenticated()
+                                .antMatchers(HttpMethod.GET, "/users/{stringUUID}").authenticated()
+                                .antMatchers(HttpMethod.POST, "/students").permitAll()
+                                .antMatchers(HttpMethod.POST, "/companies").permitAll()
+                                .anyRequest()
                                 .permitAll()
 //                        .authenticated()
                 )
