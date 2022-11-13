@@ -1,4 +1,4 @@
-package pl.edu.umg.linkumg.exception;
+package pl.edu.umg.linkumg.exceptions;
 
 public class ResourceForbiddenException extends Exception{
     public ResourceForbiddenException(String message) {

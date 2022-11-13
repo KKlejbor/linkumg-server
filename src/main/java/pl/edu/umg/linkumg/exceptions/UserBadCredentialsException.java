@@ -1,4 +1,4 @@
-package pl.edu.umg.linkumg.exception;
+package pl.edu.umg.linkumg.exceptions;
 
 public class UserBadCredentialsException extends Exception{
     public UserBadCredentialsException(String message) {

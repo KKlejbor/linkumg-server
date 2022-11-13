@@ -1,4 +1,4 @@
-package pl.edu.umg.linkumg.exception;
+package pl.edu.umg.linkumg.exceptions;
 
 public class UserIsBannedException extends Exception{
     public UserIsBannedException(String message) {
