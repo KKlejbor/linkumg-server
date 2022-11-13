@@ -1,13 +1,23 @@
 package pl.edu.umg.linkumg.service;
 
 import org.springframework.stereotype.Component;
-import pl.edu.umg.linkumg.dto.AnnouncementDto;
-import pl.edu.umg.linkumg.dto.JobOfferDto;
-import pl.edu.umg.linkumg.dto.PrivateLessonDto;
-import pl.edu.umg.linkumg.exception.UUIDConversionException;
-import pl.edu.umg.linkumg.models.Announcement;
-import pl.edu.umg.linkumg.models.JobOffer;
-import pl.edu.umg.linkumg.models.PrivateLesson;
+import pl.edu.umg.linkumg.dtos.resources.AnnouncementDto;
+import pl.edu.umg.linkumg.dtos.resources.JobOfferDto;
+import pl.edu.umg.linkumg.dtos.resources.PrivateLessonDto;
+import pl.edu.umg.linkumg.dtos.resources.save.AnnouncementSaveDto;
+import pl.edu.umg.linkumg.dtos.resources.save.JobOfferSaveDto;
+import pl.edu.umg.linkumg.dtos.resources.save.PrivateLessonSaveDto;
+import pl.edu.umg.linkumg.dtos.users.CollegeDto;
+import pl.edu.umg.linkumg.dtos.users.CompanyDto;
+import pl.edu.umg.linkumg.dtos.users.SocialDto;
+import pl.edu.umg.linkumg.dtos.users.StudentDto;
+import pl.edu.umg.linkumg.exceptions.UUIDConversionException;
+import pl.edu.umg.linkumg.models.resources.Announcement;
+import pl.edu.umg.linkumg.models.resources.JobOffer;
+import pl.edu.umg.linkumg.models.resources.PrivateLesson;
+import pl.edu.umg.linkumg.models.users.College;
+import pl.edu.umg.linkumg.models.users.Company;
+import pl.edu.umg.linkumg.models.users.Student;
 
 import java.util.UUID;
 
@@ -22,15 +32,11 @@ public class ObjectDtoConverter {
         }
     }
 
-    public static Announcement announcementDtoToAnnouncementObject(AnnouncementDto announcementDto) throws UUIDConversionException {
+    public static Announcement announcementSaveDtoToAnnouncementObject(AnnouncementSaveDto announcementSaveDto) {
         return new Announcement(
-                stringUUIDToUUID(announcementDto.id()),
-                announcementDto.title(),
-                announcementDto.pathToAnnouncementImage(),
-                announcementDto.content(),
-                null,
-                null,
-                null
+                announcementSaveDto.title(),
+                announcementSaveDto.pathToAnnouncementImage(),
+                announcementSaveDto.description()
         );
     }
 
@@ -39,46 +45,128 @@ public class ObjectDtoConverter {
                 announcement.getAnnouncementId().toString(),
                 announcement.getTitle(),
                 announcement.getPathToAnnouncementImage(),
-                announcement.getContent(),
+                announcement.getDescription(),
                 announcement.getCreatedAt().toString(),
                 announcement.getLastUpdatedAt().toString(),
-                announcement.getCollegeId().toString()
+                collegeObjectToCollegeDto(announcement.getCollege())
         );
     }
 
-    public static JobOffer jobOfferDtoToJobOfferObject(JobOfferDto jobOfferDto) {
-        return null;
+    public static JobOffer jobOfferSaveDtoToJobOfferObject(JobOfferSaveDto jobOfferSaveDto) {
+        return new JobOffer(
+                jobOfferSaveDto.title(),
+                jobOfferSaveDto.salaryDown(),
+                jobOfferSaveDto.salaryUp(),
+                jobOfferSaveDto.location(),
+                jobOfferSaveDto.description()
+        );
     }
 
     public static JobOfferDto jobOfferObjectToJobOfferDto(JobOffer jobOffer) {
-        return null;
+        return new JobOfferDto(
+                jobOffer.getJobOfferId().toString(),
+                jobOffer.getTitle(),
+                jobOffer.getSalaryDown(),
+                jobOffer.getSalaryUp(),
+                jobOffer.getLocation(),
+                jobOffer.getDescription(),
+                jobOffer.getCreatedAt().toString(),
+                jobOffer.getLastUpdatedAt().toString(),
+                companyObjectToCompanyDto(jobOffer.getCompany())
+        );
     }
 
-    public static PrivateLesson privateLessonDtoToPrivateLessonObject(PrivateLessonDto privateLessonDto) {
+    public static PrivateLesson privateLessonSaveDtoToPrivateLessonObject(PrivateLessonSaveDto privateLessonSaveDto) {
         return new PrivateLesson(
-                privateLessonDto.lessonId(),
-                privateLessonDto.title(),
-                privateLessonDto.category(),
-                privateLessonDto.city(),
-                privateLessonDto.pricePerHour(),
-                privateLessonDto.description(),
-                null,
-                null,
-                null
+                privateLessonSaveDto.title(),
+                privateLessonSaveDto.category(),
+                privateLessonSaveDto.location(),
+                privateLessonSaveDto.pricePerHour(),
+                privateLessonSaveDto.description()
         );
     }
 
     public static PrivateLessonDto privateLessonObjectToPrivateLessonDto(PrivateLesson privateLesson) {
         return new PrivateLessonDto(
-                privateLesson.getLessonId(),
+                privateLesson.getLessonId().toString(),
                 privateLesson.getTitle(),
                 privateLesson.getCategory(),
-                privateLesson.getCity(),
+                privateLesson.getLocation(),
                 privateLesson.getPricePerHour(),
                 privateLesson.getDescription(),
-                privateLesson.getStudentId(),
-                privateLesson.getCreatedAt(),
-                privateLesson.getLastUpdatedAt()
+                privateLesson.getCreatedAt().toString(),
+                privateLesson.getLastUpdatedAt().toString(),
+                studentObjectToStudentDto(privateLesson.getStudent())
+        );
+    }
+
+    public static College collegeDtoToCollegeObject(){
+        return null;
+    }
+
+    public static CollegeDto collegeObjectToCollegeDto(College college){
+        return new CollegeDto(
+                college.getClass().getSimpleName().toLowerCase(),
+                college.getUserId(),
+                college.getName(),
+                college.getCreatedAt(),
+                college.getLastUpdatedAt(),
+                college.getEmail(),
+                college.getDescription(),
+                college.getPathToAvatar()
+        );
+    }
+
+    public static Company companyDtoToCompanyObject(){
+        return null;
+    }
+
+    public static CompanyDto companyObjectToCompanyDto(Company company){
+        return new CompanyDto(
+                company.getClass().getSimpleName().toLowerCase(),
+                company.getUserId(),
+                company.getName(),
+                company.getCreatedAt(),
+                company.getLastUpdatedAt(),
+                company.getPhoneNumber(),
+                company.getEmail(),
+                company.getDescription(),
+                new SocialDto(
+                        company.getSocials().getGithub(),
+                        company.getSocials().getLinkedin(),
+                        company.getSocials().getFacebook(),
+                        company.getSocials().getInstagram()
+                ),
+                company.getPathToAvatar(),
+                company.getNip()
+        );
+    }
+
+    public static Student studentDtoToStudentObject(){
+        return null;
+    }
+
+    public static StudentDto studentObjectToStudentDto(Student student){
+        return new StudentDto(
+                student.getClass().getSimpleName().toLowerCase(),
+                student.getUserId(),
+                student.getName(),
+                student.getLastName(),
+                student.getCreatedAt(),
+                student.getLastUpdatedAt(),
+                student.getBirthYear(),
+                student.getPhoneNumber(),
+                student.getEmail(),
+                student.getDescription(),
+                new SocialDto(
+                        student.getSocials().getGithub(),
+                        student.getSocials().getLinkedin(),
+                        student.getSocials().getFacebook(),
+                        student.getSocials().getInstagram()
+                ),
+                student.getPathToAvatar(),
+                student.getIndexNumber(),
+                student.getFaculty()
         );
     }
 }

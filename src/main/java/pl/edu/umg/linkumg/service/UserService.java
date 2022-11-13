@@ -2,24 +2,38 @@ package pl.edu.umg.linkumg.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.Link;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
-import pl.edu.umg.linkumg.dto.*;
-import pl.edu.umg.linkumg.exception.*;
-import pl.edu.umg.linkumg.models.College;
-import pl.edu.umg.linkumg.models.Company;
-import pl.edu.umg.linkumg.models.Student;
-import pl.edu.umg.linkumg.models.User;
+import org.springframework.transaction.annotation.Transactional;
+import pl.edu.umg.linkumg.controllers.users.UserController;
+import pl.edu.umg.linkumg.dtos.LoginDto;
+import pl.edu.umg.linkumg.dtos.TokenDto;
+import pl.edu.umg.linkumg.dtos.register.CollegeRegisterDto;
+import pl.edu.umg.linkumg.dtos.register.CompanyRegisterDto;
+import pl.edu.umg.linkumg.dtos.register.StudentRegisterDto;
+import pl.edu.umg.linkumg.exceptions.*;
+import pl.edu.umg.linkumg.models.ActivationToken;
+import pl.edu.umg.linkumg.models.users.College;
+import pl.edu.umg.linkumg.models.users.Company;
+import pl.edu.umg.linkumg.models.users.Student;
+import pl.edu.umg.linkumg.models.users.User;
+import pl.edu.umg.linkumg.repositories.ActivationTokenRepository;
 import pl.edu.umg.linkumg.repositories.UserRepository;
 
+import java.io.IOException;
+import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -29,6 +43,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     private UserRepository userRepository;
+    private ActivationTokenRepository activationTokenRepository;
+    private SendGridService sendGridService;
 
     public void registerStudent(StudentRegisterDto studentRegisterDto) throws ResourceViolationException {
         Student student = new Student(
@@ -44,6 +60,12 @@ public class UserService {
         student.setLastUpdatedAt(LocalDateTime.now());
 
         saveNewInDB(student);
+
+        // TODO: 13/11/2022 activation email
+        ActivationToken activationToken = new ActivationToken(UUID.randomUUID().toString(), student);
+        activationTokenRepository.save(activationToken);
+
+        System.out.println(String.format("http://localhost:8080/users/activate?token=%s", activationToken.getToken()));
     }
 
     public void registerCompany(CompanyRegisterDto companyRegisterDto) throws ResourceViolationException {
@@ -60,35 +82,35 @@ public class UserService {
         saveNewInDB(company);
     }
 
-    // TODO:
     public void registerCollege(CollegeRegisterDto collegeRegisterDto) throws ResourceViolationException {
         College college = new College(
-
+                collegeRegisterDto.email(),
+                passwordEncoder.encode(collegeRegisterDto.password()),
+                collegeRegisterDto.name(),
+                collegeRegisterDto.faculty()
         );
+
+        college.setCreatedAt(LocalDateTime.now());
+        college.setLastUpdatedAt(LocalDateTime.now());
 
         saveNewInDB(college);
     }
 
-    public void remaindPassword(String email) {
-        userRepository.findByEmail(email);
-        // TODO: remaindPassword
-    }
-
     // TODO: refreshToken
-    public TokenDto generateToken(JwtRequest jwtRequest) throws UserIsNotActivatedException, UserBadCredentialsException, UserIsBannedException {
+    public TokenDto generateToken(LoginDto loginDto) throws UserIsNotActivatedException, UserBadCredentialsException, UserIsBannedException {
         User user = userRepository
-                .findByEmail(jwtRequest.email())
+                .findByEmail(loginDto.email())
                 .orElseThrow(() ->
                         new UsernameNotFoundException(
-                                String.format("User with email %s not found.", jwtRequest.email())
+                                String.format("User with email %s not found.", loginDto.email())
                         ));
-        if (!passwordEncoder.matches(jwtRequest.password(), user.getPassword()))
+        if (!passwordEncoder.matches(loginDto.password(), user.getPassword()))
             throw new UserBadCredentialsException("Bad credentials.");
         if (!user.isActive()) {
-            throw new UserIsNotActivatedException(String.format("User %s isn't activated.", jwtRequest.email()));
+            throw new UserIsNotActivatedException(String.format("User %s isn't activated.", loginDto.email()));
         }
         if (user.isBanned()) {
-            throw new UserIsBannedException(String.format("User %s is banned.", jwtRequest.email()));
+            throw new UserIsBannedException(String.format("User %s is banned.", loginDto.email()));
         }
 
         Instant now = Instant.now();
@@ -99,101 +121,65 @@ public class UserService {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.MINUTES))
-                .subject(jwtRequest.email())
+                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .subject(loginDto.email())
                 .claim("scope", scope)
                 .build();
 
         return new TokenDto(
-                "bearer",
                 this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue(),
                 null
         );
     }
 
-    // TODO: findUserById
+    // TODO: renewToken
+    // TODO: invalid token
+    public void logout() {
+    }
+
+    // TODO: mapper?
     public Object findUserById(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
         User user = findUserFromDBById(stringUUID);
 
         if (user instanceof Student student) {
-            return new StudentDto(
-                    student.getClass().getSimpleName().toLowerCase(),
-                    student.getUserId(),
-                    student.getName(),
-                    student.getLastName(),
-                    student.getCreatedAt(),
-                    student.getLastUpdatedAt(),
-                    student.getBirthYear(),
-                    student.getPhoneNumber(),
-                    student.getEmail(),
-                    student.getDescription(),
-                    new SocialDto(
-                            student.getSocials().getGithub(),
-                            student.getSocials().getLinkedin(),
-                            student.getSocials().getFacebook(),
-                            student.getSocials().getInstagram()
-                    ),
-                    student.getPathToAvatar(),
-                    student.getIndexNumber(),
-                    student.getFaculty()
-            );
+            return ObjectDtoConverter.studentObjectToStudentDto(student);
         } else if (user instanceof Company company) {
-            return new CompanyDto(
-                    company.getClass().getSimpleName().toLowerCase(),
-                    company.getUserId(),
-                    company.getName(),
-                    company.getCreatedAt(),
-                    company.getLastUpdatedAt(),
-                    company.getPhoneNumber(),
-                    company.getEmail(),
-                    company.getDescription(),
-                    new SocialDto(
-                            company.getSocials().getGithub(),
-                            company.getSocials().getLinkedin(),
-                            company.getSocials().getFacebook(),
-                            company.getSocials().getInstagram()
-                    ),
-                    company.getPathToAvatar(),
-                    company.getNip()
-            );
+            return ObjectDtoConverter.companyObjectToCompanyDto(company);
         } else {
             College college = (College) user;
-            return new CollegeDto(
-                    college.getClass().getSimpleName().toLowerCase(),
-                    college.getUserId(),
-                    college.getName(),
-                    college.getCreatedAt(),
-                    college.getLastUpdatedAt(),
-                    college.getEmail(),
-                    college.getDescription(),
-                    college.getPathToAvatar()
-            );
+            return ObjectDtoConverter.collegeObjectToCollegeDto(college);
         }
     }
 
     // TODO: findUsersPage
-//    public Page<User> findUsersPage(Pageable pageable) {
-//        return userRepository.findAll(pageable);
-//    }
-
-    // TODO: activate
-    public void activate(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
-        User user = findUserFromDBById(stringUUID);
-        user.setActive(true);
-        userRepository.save(user);
+    public Page<User> findUsersPage(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     public void updateUser() {
-        // TODO: update
+        // TODO: update custom user
     }
 
-    public void changePassword(String stringUUID, PasswordChangeDto passwordChangeDto, String userEmail) throws ResourceNotFoundException, UUIDConversionException {
-        User user = findUserFromDBById(stringUUID);
-        if(user.getEmail().equals(userEmail)){
-            throw new RuntimeException("User can only change own, profile.");
-        }
-        user.setPassword(passwordEncoder.encode(passwordChangeDto.password()));
+    // TODO: activate
+    @Transactional
+    public void activate(String token) throws ResourceNotFoundException {
+        ActivationToken activationToken = activationTokenRepository.findByToken(token)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                String.format("Token not found.")
+                        )
+                );
+        if(Instant.now().compareTo(activationToken.getExpiresAt())>0)
+            throw new ResourceNotFoundException("Token expired.");
+        User user = activationToken.getUser();
+        user.setActive(true);
         userRepository.save(user);
+        activationTokenRepository.deleteById(activationToken.getUuid());
+    }
+
+    public void remindPassword(String email) {
+        userRepository.findByEmail(email);
+        // TODO: SENDGRID remindPassword
     }
 
     public void banUser(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {

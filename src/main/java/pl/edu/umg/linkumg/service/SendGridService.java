@@ -26,7 +26,7 @@ public class SendGridService {
         Email to = new Email("radek.paradecki@gmail.com");
         Content content = new Content("text/plain", "and easy to do anywhere, even with Java");
         var templateId = "d-acabfe4565e8431f83500137af6a8375";
-//        Mail mail = new Mail(from, subject, to, content);
+//        Mail mail = new Mail(from, subject, to, description);
         Mail mail = new Mail();
         mail.setFrom(from);
         mail.setTemplateId(templateId);
@@ -44,5 +44,21 @@ public class SendGridService {
         System.out.println(response.getStatusCode());
         System.out.println(response.getBody());
         System.out.println(response.getHeaders());
+    }
+
+    public void sendActivationEmail(String url) throws IOException {
+        Email from = new Email("umglink@gmail.com");
+        String subject = "Active";
+        Email to = new Email("radek.paradecki@gmail.com");
+        Content content = new Content("text/plain", "Url: " + url);
+        Mail mail = new Mail(from, subject, to, content);
+        Request request = new Request();
+        request.setMethod(Method.POST);
+        request.setEndpoint("mail/send");
+        request.setBody(mail.build());
+        Response response = sendGrid.api(request);
+//        System.out.println(response.getStatusCode());
+//        System.out.println(response.getBody());
+//        System.out.println(response.getHeaders());
     }
 }

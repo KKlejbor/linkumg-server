@@ -6,16 +6,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import pl.edu.umg.linkumg.models.Announcement;
-import pl.edu.umg.linkumg.models.College;
-import pl.edu.umg.linkumg.repositories.AnnouncementRepository;
-import pl.edu.umg.linkumg.repositories.PrivateLessonRepository;
+import pl.edu.umg.linkumg.models.users.College;
+import pl.edu.umg.linkumg.models.users.Company;
+import pl.edu.umg.linkumg.models.users.Student;
 import pl.edu.umg.linkumg.repositories.UserRepository;
 import pl.edu.umg.linkumg.security.RsaKeyProperties;
-import pl.edu.umg.linkumg.service.SendGridService;
-import pl.edu.umg.linkumg.service.UserService;
-
-import java.time.LocalDateTime;
 
 @EnableConfigurationProperties(RsaKeyProperties.class)
 @SpringBootApplication
@@ -26,89 +21,42 @@ public class LinkumgApplication {
     }
 
     @Bean
-    CommandLineRunner commandLineRunner(AnnouncementRepository announcementRepository, SendGridService service, UserService userService, UserRepository userRepository, PrivateLessonRepository privateLessonRepository, PasswordEncoder passwordEncoder) {
+    CommandLineRunner commandLineRunner(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-//            Student student = userRepository.save(
-//                    new Student(
-//                            null,
-//                            "student",
-//                            passwordEncoder.encode("password"),
-//                            true,
-//                            false,
-//                            "studentName",
-//                            "description",
-//                            "",
-//                            LocalDateTime.now(),
-//                            LocalDateTime.now(),
-//                            "studentLastName",
-//                            LocalDate.now(),
-//                            "111 111 111",
-//                            new Social(
-//                                    null,
-//                                    "github",
-//                                    "linkedin",
-//                                    "facebook",
-//                                    null
-//                            ),
-//                            99999,
-//                            "Inf"
-//                    )
-//            );
-//            userRepository.save(student);
-//            service.sendEmail();
+            Student student = new Student(
+                    "student",
+                    passwordEncoder.encode("password"),
+                    "student",
+                    "student",
+                    99999,
+                    "faculty"
+            );
 
-            College college = userRepository.save(
-                    new College(
-                            null,
-                            "college",
-                            passwordEncoder.encode("password"),
-                            true,
-                            false,
-                            "college",
-                            "college",
-                            "",
-                            LocalDateTime.now(),
-                            LocalDateTime.now(),
-                            "Inf"
-                    ));
+            student.setActive(true);
 
-            Announcement announcement =
-                    new Announcement(
-                            null,
-                            "title",
-                            "",
-                            "content",
-                            LocalDateTime.now(),
-                            LocalDateTime.now(),
-                            college.getUserId()
-                    );
+            userRepository.save(student);
 
-            announcementRepository.save(announcement);
-            college.addAnnouncement(announcement);
+            Company company = new Company(
+                    "company",
+                    passwordEncoder.encode("password"),
+                    "company",
+                    "nip"
+            );
 
-            announcement.setTitle("content");
-            announcement.setContent("title");
-            announcement.setAnnouncementId(null);
-            announcement.setCreatedAt(LocalDateTime.now());
-            announcement.setLastUpdatedAt(LocalDateTime.now());
-            announcementRepository.save(announcement);
-            college.addAnnouncement(announcement);
+            company.setActive(true);
 
-            Announcement announcement3 =
-                    new Announcement(
-                            null,
-                            "goblin",
-                            "",
-                            "pomidor",
-                            LocalDateTime.now(),
-                            LocalDateTime.now(),
-                            college.getUserId()
-                    );
+            userRepository.save(company);
 
-            announcementRepository.save(announcement3);
-            college.addAnnouncement(announcement3);
+            College college = new College(
+                    "college",
+                    passwordEncoder.encode("password"),
+                    "college",
+                    "faculty"
+            );
 
-//            userRepository.save(college);
+            college.setActive(true);
+
+            userRepository.save(college);
         };
     }
 }

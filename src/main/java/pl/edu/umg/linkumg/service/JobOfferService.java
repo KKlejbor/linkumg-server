@@ -1,13 +1,16 @@
 package pl.edu.umg.linkumg.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pl.edu.umg.linkumg.dto.JobOfferDto;
-import pl.edu.umg.linkumg.exception.ResourceForbiddenException;
-import pl.edu.umg.linkumg.exception.ResourceNotFoundException;
-import pl.edu.umg.linkumg.exception.UUIDConversionException;
-import pl.edu.umg.linkumg.models.Company;
-import pl.edu.umg.linkumg.models.JobOffer;
+import pl.edu.umg.linkumg.dtos.resources.JobOfferDto;
+import pl.edu.umg.linkumg.dtos.resources.save.JobOfferSaveDto;
+import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
+import pl.edu.umg.linkumg.exceptions.ResourceNotFoundException;
+import pl.edu.umg.linkumg.exceptions.UUIDConversionException;
+import pl.edu.umg.linkumg.models.resources.JobOffer;
+import pl.edu.umg.linkumg.models.users.Company;
 import pl.edu.umg.linkumg.repositories.JobOfferRepository;
 import pl.edu.umg.linkumg.repositories.UserRepository;
 
@@ -21,20 +24,17 @@ public class JobOfferService {
     private UserRepository userRepository;
     private ObjectDtoConverter converter;
 
-    public JobOfferDto createJobOffer(JobOfferDto jobOfferDto, String companyEmail) throws ResourceNotFoundException {
+    public JobOfferDto createJobOffer(JobOfferSaveDto jobOfferSaveDto, String companyEmail) throws ResourceNotFoundException {
         Company company = checkCompanyExists(companyEmail);
 
         // TODO: validate
 
-        JobOffer jobOffer = converter.jobOfferDtoToJobOfferObject(jobOfferDto);
+        JobOffer jobOffer = converter.jobOfferSaveDtoToJobOfferObject(jobOfferSaveDto);
         jobOffer.setCreatedAt(LocalDateTime.now());
         jobOffer.setLastUpdatedAt(LocalDateTime.now());
-        jobOffer.setCompanyId(company.getUserId());
-        jobOfferRepository.save(jobOffer);
+        jobOffer.setCompany(company);
 
-        company.addJobOffer(jobOffer);
-        company.setLastUpdatedAt(LocalDateTime.now());
-        userRepository.save(company);
+        jobOfferRepository.save(jobOffer);
 
         return converter.jobOfferObjectToJobOfferDto(jobOffer);
     }
@@ -45,31 +45,46 @@ public class JobOfferService {
         );
     }
 
-    // TODO: findPage
-    public void findJobOfferPage(int page) {
+    public Page<JobOfferDto> findJobOfferPage(Pageable pageable, String contain, String location, Integer salaryDown, Integer salaryUp) {
+        Page<JobOffer> jobOffersPage;
+        if (salaryDown != null || salaryUp != null) {
+            if (salaryDown != null && salaryUp != null) {
+                if (salaryDown > salaryUp) {
+                    int store = salaryDown;
+                    salaryDown = salaryUp;
+                    salaryUp = store;
+                }
+                jobOffersPage = jobOfferRepository.findAllByTitleContainingOrDescriptionContainingOrLocationContainingAndSalaryDownIsGreaterThanEqualAndSalaryUpIsLessThanEqual(pageable, contain, contain, location, salaryDown, salaryUp);
+            } else if (salaryDown != null) {
+                jobOffersPage = jobOfferRepository.findAllByTitleContainingOrDescriptionContainingOrLocationContainingAndSalaryDownIsGreaterThanEqual(pageable, contain, contain, location, salaryDown);
+            } else {
+                jobOffersPage = jobOfferRepository.findAllByTitleContainingOrDescriptionContainingOrLocationContainingAndSalaryUpIsLessThanEqual(pageable, contain, contain, location, salaryUp);
+            }
+        } else {
+            jobOffersPage = jobOfferRepository.findAllByTitleContainingOrDescriptionContainingOrLocationContaining(pageable, contain, contain, location);
+        }
+        return jobOffersPage.map(ObjectDtoConverter::jobOfferObjectToJobOfferDto);
     }
 
-    public JobOfferDto updateJobOffer(String stringUUID, JobOfferDto jobOfferDto, String companyEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
+    public JobOfferDto updateJobOffer(String stringUUID, JobOfferSaveDto jobOfferSaveDto, String companyEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         JobOffer jobOffer = checkJobOfferExists(stringUUID);
         Company company = checkCompanyExists(companyEmail);
         checkCompanyHaveAccessToResource(company, jobOffer);
 
         // TODO: validation
 
-        if (jobOfferDto.title() != null)
-            jobOffer.setTitle(jobOfferDto.title());
-        if (jobOfferDto.salaryDown() != null)
-            jobOffer.setSalaryDown(jobOfferDto.salaryDown());
-        if (jobOfferDto.salaryUp() != null)
-            jobOffer.setSalaryUp(jobOfferDto.salaryUp());
-        if (jobOfferDto.city() != null)
-            jobOffer.setCity(jobOfferDto.city());
-        if (jobOfferDto.pathToJobOfferImage() != null)
-            jobOffer.setPathToJobOfferImage(jobOfferDto.pathToJobOfferImage());
+        if (jobOfferSaveDto.title() != null)
+            jobOffer.setTitle(jobOfferSaveDto.title());
+        if (jobOfferSaveDto.salaryDown() != null)
+            jobOffer.setSalaryDown(jobOfferSaveDto.salaryDown());
+        if (jobOfferSaveDto.salaryUp() != null)
+            jobOffer.setSalaryUp(jobOfferSaveDto.salaryUp());
+        if (jobOfferSaveDto.location() != null)
+            jobOffer.setLocation(jobOfferSaveDto.location());
+        if (jobOfferSaveDto.description() != null)
+            jobOffer.setDescription(jobOfferSaveDto.description());
 
-        company.setLastUpdatedAt(LocalDateTime.now());
-
-        userRepository.save(company);
+        jobOfferRepository.save(jobOffer);
 
         return converter.jobOfferObjectToJobOfferDto(jobOffer);
     }
@@ -101,7 +116,7 @@ public class JobOfferService {
     }
 
     private void checkCompanyHaveAccessToResource(Company company, JobOffer jobOffer) throws ResourceForbiddenException {
-        if (!jobOffer.getCompanyId().equals(company.getUserId()))
-            throw new ResourceForbiddenException(String.format("User with email %s is forbidden to use this resource.", company.getEmail()));
+        if (!jobOffer.getCompany().getUserId().equals(company.getUserId()))
+            throw new ResourceForbiddenException(String.format("User with email %s have forbidden access to this resource.", company.getEmail()));
     }
 }

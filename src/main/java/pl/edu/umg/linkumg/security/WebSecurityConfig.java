@@ -41,14 +41,27 @@ public class WebSecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeRequests(auth -> auth
-                                .antMatchers(HttpMethod.POST, "/users/login").not().authenticated()
-                                .antMatchers(HttpMethod.POST, "/users/remindPassword/{email}").not().authenticated()
-                                .antMatchers(HttpMethod.GET, "/users/{stringUUID}").authenticated()
-                                .antMatchers(HttpMethod.POST, "/students").permitAll()
-                                .antMatchers(HttpMethod.POST, "/companies").permitAll()
-                                .anyRequest()
-                                .permitAll()
-//                        .authenticated()
+                        //todo constants
+                        .antMatchers(HttpMethod.POST, "/announcements").hasRole("COLLEGE")
+                        .antMatchers(HttpMethod.GET, "/announcements/{stringUUID}").authenticated()
+                        .antMatchers(HttpMethod.GET, "/announcements").authenticated()
+                        .antMatchers(HttpMethod.PATCH, "/announcements/{stringUUID}").hasRole("COLLEGE")
+                        .antMatchers(HttpMethod.DELETE, "/announcements/{stringUUID}").hasRole("COLLEGE")
+
+                        .antMatchers(HttpMethod.POST, "/jobOffers").hasRole("COMPANY")
+                        .antMatchers(HttpMethod.GET, "/jobOffers/{stringUUID}").authenticated()
+                        .antMatchers(HttpMethod.GET, "/jobOffers").authenticated()
+                        .antMatchers(HttpMethod.PATCH, "/jobOffers/{stringUUID}").hasRole("COMPANY")
+                        .antMatchers(HttpMethod.DELETE, "/jobOffers/{stringUUID}").hasRole("COMPANY")
+
+                        .antMatchers(HttpMethod.POST, "/privateLessons").hasRole("STUDENT")
+                        .antMatchers(HttpMethod.GET, "/privateLessons/{stringUUID}").authenticated()
+                        .antMatchers(HttpMethod.GET, "/privateLessons").authenticated()
+                        .antMatchers(HttpMethod.PATCH, "/privateLessons/{stringUUID}").hasRole("STUDENT")
+                        .antMatchers(HttpMethod.DELETE, "/privateLessons/{stringUUID}").hasRole("STUDENT")
+
+                        .anyRequest()
+                        .permitAll()
                 )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

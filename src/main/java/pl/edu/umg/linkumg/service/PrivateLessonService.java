@@ -1,13 +1,16 @@
 package pl.edu.umg.linkumg.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pl.edu.umg.linkumg.dto.PrivateLessonDto;
-import pl.edu.umg.linkumg.exception.ResourceForbiddenException;
-import pl.edu.umg.linkumg.exception.ResourceNotFoundException;
-import pl.edu.umg.linkumg.exception.UUIDConversionException;
-import pl.edu.umg.linkumg.models.PrivateLesson;
-import pl.edu.umg.linkumg.models.Student;
+import pl.edu.umg.linkumg.dtos.resources.PrivateLessonDto;
+import pl.edu.umg.linkumg.dtos.resources.save.PrivateLessonSaveDto;
+import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
+import pl.edu.umg.linkumg.exceptions.ResourceNotFoundException;
+import pl.edu.umg.linkumg.exceptions.UUIDConversionException;
+import pl.edu.umg.linkumg.models.resources.PrivateLesson;
+import pl.edu.umg.linkumg.models.users.Student;
 import pl.edu.umg.linkumg.repositories.PrivateLessonRepository;
 import pl.edu.umg.linkumg.repositories.UserRepository;
 
@@ -21,57 +24,57 @@ public class PrivateLessonService {
     private UserRepository userRepository;
     private ObjectDtoConverter converter;
 
-    public PrivateLessonDto createNewPrivateLesson(PrivateLessonDto privateLessonDto, String studentEmail) throws ResourceNotFoundException {
+    public PrivateLessonDto createNewPrivateLesson(PrivateLessonSaveDto privateLessonSaveDto, String studentEmail) throws ResourceNotFoundException {
         Student student = checkStudentExists(studentEmail);
 
         // TODO: validate privateLessonDto
 
-        PrivateLesson privateLesson = converter.privateLessonDtoToPrivateLessonObject(privateLessonDto);
+        PrivateLesson privateLesson = ObjectDtoConverter.privateLessonSaveDtoToPrivateLessonObject(privateLessonSaveDto);
         privateLesson.setCreatedAt(LocalDateTime.now());
         privateLesson.setLastUpdatedAt(LocalDateTime.now());
-        privateLesson.setStudentId(student.getUserId());
+        privateLesson.setStudent(student);
+
         privateLessonRepository.save(privateLesson);
 
-        student.addPrivateLesson(privateLesson);
-        student.setLastUpdatedAt(LocalDateTime.now());
-        userRepository.save(student);
-
-        return converter.privateLessonObjectToPrivateLessonDto(privateLesson);
+        return ObjectDtoConverter.privateLessonObjectToPrivateLessonDto(privateLesson);
     }
 
     public PrivateLessonDto findPrivateLessonById(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-        return converter.privateLessonObjectToPrivateLessonDto(
+        return ObjectDtoConverter.privateLessonObjectToPrivateLessonDto(
                 checkPrivateLessonExists(stringUUID)
         );
     }
 
-    // TODO: findPage
-    public void findPrivateLessonsPage(int page) {
+    public Page<PrivateLessonDto> findPrivateLessonsPage(Pageable pageable, String contain, String category, String location) {
+        Page<PrivateLesson> privateLessonPage =
+                privateLessonRepository.findAllByTitleContainingOrDescriptionContainingOrCategoryContainingOrLocationContaining(pageable, contain, contain, category, location);
+
+        return privateLessonPage.map(ObjectDtoConverter::privateLessonObjectToPrivateLessonDto);
     }
 
-    public PrivateLessonDto updatePrivateLesson(String stringUUID, PrivateLessonDto privateLessonDto, String studentEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
+    public PrivateLessonDto updatePrivateLesson(String stringUUID, PrivateLessonSaveDto privateLessonSaveDto, String studentEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         PrivateLesson privateLesson = checkPrivateLessonExists(stringUUID);
         Student student = checkStudentExists(studentEmail);
         checkStudentHaveAccessToResource(student, privateLesson);
 
         // TODO: validation
 
-        if (privateLessonDto.category() != null)
-            privateLesson.setCategory(privateLessonDto.category());
-        if (privateLessonDto.city() != null)
-            privateLesson.setCity(privateLessonDto.city());
-        if (privateLessonDto.description() != null)
-            privateLesson.setDescription(privateLessonDto.description());
-        if (privateLessonDto.title() != null)
-            privateLesson.setTitle(privateLessonDto.title());
-        if (privateLessonDto.pricePerHour() > 0)
-            privateLesson.setPricePerHour(privateLessonDto.pricePerHour());
+        if (privateLessonSaveDto.category() != null)
+            privateLesson.setCategory(privateLessonSaveDto.category());
+        if (privateLessonSaveDto.location() != null)
+            privateLesson.setLocation(privateLessonSaveDto.location());
+        if (privateLessonSaveDto.description() != null)
+            privateLesson.setDescription(privateLessonSaveDto.description());
+        if (privateLessonSaveDto.title() != null)
+            privateLesson.setTitle(privateLessonSaveDto.title());
+        if (privateLessonSaveDto.pricePerHour() > 0)
+            privateLesson.setPricePerHour(privateLessonSaveDto.pricePerHour());
 
         privateLesson.setLastUpdatedAt(LocalDateTime.now());
 
         privateLessonRepository.save(privateLesson);
 
-        return converter.privateLessonObjectToPrivateLessonDto(privateLesson);
+        return ObjectDtoConverter.privateLessonObjectToPrivateLessonDto(privateLesson);
     }
 
     public void removePrivateLesson(String stringUUID, String studentEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
@@ -83,7 +86,7 @@ public class PrivateLessonService {
     }
 
     private PrivateLesson checkPrivateLessonExists(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-        return privateLessonRepository.findById(converter.stringUUIDToUUID(stringUUID))
+        return privateLessonRepository.findById(ObjectDtoConverter.stringUUIDToUUID(stringUUID))
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 String.format("Private lesson with %s id not found.", stringUUID)
@@ -101,7 +104,7 @@ public class PrivateLessonService {
     }
 
     private void checkStudentHaveAccessToResource(Student student, PrivateLesson privateLesson) throws ResourceForbiddenException {
-        if (!privateLesson.getStudentId().equals(student.getUserId()))
-            throw new ResourceForbiddenException(String.format("User with email %s is forbidden to use this resource.", student.getEmail()));
+        if (!privateLesson.getStudent().getUserId().equals(student.getUserId()))
+            throw new ResourceForbiddenException(String.format("User with email %s have forbidden access to this resource.", student.getEmail()));
     }
 }
