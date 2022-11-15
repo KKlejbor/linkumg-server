@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.edu.umg.linkumg.dtos.LoginDto;
+import pl.edu.umg.linkumg.dtos.RefreshTokenDto;
 import pl.edu.umg.linkumg.dtos.TokenDto;
 import pl.edu.umg.linkumg.exceptions.*;
 import pl.edu.umg.linkumg.service.UserService;
@@ -25,18 +26,19 @@ public class UserController {
      * @throws UserBadCredentialsException
      */
     @PostMapping("/login")
-    public ResponseEntity<TokenDto> login(@RequestBody LoginDto loginDto) throws UserIsNotActivatedException, UserIsBannedException, UserBadCredentialsException {
+    public ResponseEntity<TokenDto> login(@RequestBody LoginDto loginDto) throws UserIsNotActivatedException, UserIsBannedException, UserBadCredentialsException, ResourceNotFoundException {
         return ResponseEntity
                 .accepted()
                 .body(
-                        userService.generateToken(loginDto)
+                        userService.generateTokenByCredentials(loginDto)
                 );
     }
 
-    // TODO: renewAccessToken
-    @PostMapping("/refreshToken")
-    public ResponseEntity<?> renewAccessToken() {
-        return null;
+    @PostMapping("/renewToken")
+    public ResponseEntity<TokenDto> renewAccessToken(RefreshTokenDto refreshTokenDto) throws UserIsBannedException, UserIsNotActivatedException, ResourceNotFoundException, TokenExpiredException {
+        return ResponseEntity
+                .accepted()
+                .body(userService.renewToken(refreshTokenDto));
     }
 
     // TODO: logout
@@ -71,7 +73,7 @@ public class UserController {
     }
 
     @GetMapping("/activate")
-    public ResponseEntity<?> activateAccount(@RequestParam String token) throws ResourceNotFoundException {
+    public ResponseEntity<?> activateAccount(@RequestParam String token) throws ResourceNotFoundException, TokenExpiredException {
         userService.activate(token);
         return ResponseEntity.noContent().build();
     }

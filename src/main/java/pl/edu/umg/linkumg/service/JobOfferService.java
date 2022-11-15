@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.edu.umg.linkumg.dtos.resources.JobOfferDto;
 import pl.edu.umg.linkumg.dtos.resources.save.JobOfferSaveDto;
 import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
@@ -22,25 +23,24 @@ public class JobOfferService {
 
     private JobOfferRepository jobOfferRepository;
     private UserRepository userRepository;
-    private ObjectDtoConverter converter;
 
     public JobOfferDto createJobOffer(JobOfferSaveDto jobOfferSaveDto, String companyEmail) throws ResourceNotFoundException {
         Company company = checkCompanyExists(companyEmail);
 
         // TODO: validate
 
-        JobOffer jobOffer = converter.jobOfferSaveDtoToJobOfferObject(jobOfferSaveDto);
+        JobOffer jobOffer = ObjectDtoConverter.jobOfferSaveDtoToJobOfferObject(jobOfferSaveDto);
         jobOffer.setCreatedAt(LocalDateTime.now());
         jobOffer.setLastUpdatedAt(LocalDateTime.now());
         jobOffer.setCompany(company);
 
         jobOfferRepository.save(jobOffer);
 
-        return converter.jobOfferObjectToJobOfferDto(jobOffer);
+        return ObjectDtoConverter.jobOfferObjectToJobOfferDto(jobOffer);
     }
 
     public JobOfferDto findJobOfferById(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-        return converter.jobOfferObjectToJobOfferDto(
+        return ObjectDtoConverter.jobOfferObjectToJobOfferDto(
                 checkJobOfferExists(stringUUID)
         );
     }
@@ -66,6 +66,7 @@ public class JobOfferService {
         return jobOffersPage.map(ObjectDtoConverter::jobOfferObjectToJobOfferDto);
     }
 
+    @Transactional
     public JobOfferDto updateJobOffer(String stringUUID, JobOfferSaveDto jobOfferSaveDto, String companyEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         JobOffer jobOffer = checkJobOfferExists(stringUUID);
         Company company = checkCompanyExists(companyEmail);
@@ -86,9 +87,10 @@ public class JobOfferService {
 
         jobOfferRepository.save(jobOffer);
 
-        return converter.jobOfferObjectToJobOfferDto(jobOffer);
+        return ObjectDtoConverter.jobOfferObjectToJobOfferDto(jobOffer);
     }
 
+    @Transactional
     public void removeJobOffer(String stringUUID, String companyEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         JobOffer jobOffer = checkJobOfferExists(stringUUID);
         Company company = checkCompanyExists(companyEmail);
@@ -98,7 +100,7 @@ public class JobOfferService {
     }
 
     private JobOffer checkJobOfferExists(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-        return jobOfferRepository.findById(converter.stringUUIDToUUID(stringUUID))
+        return jobOfferRepository.findById(ObjectDtoConverter.stringUUIDToUUID(stringUUID))
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 String.format("Job offer with %s id not found.", stringUUID)

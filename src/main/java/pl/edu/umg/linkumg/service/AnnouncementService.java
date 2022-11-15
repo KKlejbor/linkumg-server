@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.edu.umg.linkumg.dtos.resources.AnnouncementDto;
 import pl.edu.umg.linkumg.dtos.resources.save.AnnouncementSaveDto;
 import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
@@ -22,25 +23,24 @@ public class AnnouncementService {
 
     private AnnouncementRepository announcementRepository;
     private UserRepository userRepository;
-    private ObjectDtoConverter converter;
 
     public AnnouncementDto createAnnouncement(AnnouncementSaveDto announcementSaveDto, String collegeEmail) throws ResourceNotFoundException {
         College college = checkCollegeExists(collegeEmail);
 
         // TODO: validate announcementDto
 
-        Announcement announcement = converter.announcementSaveDtoToAnnouncementObject(announcementSaveDto);
+        Announcement announcement = ObjectDtoConverter.announcementSaveDtoToAnnouncementObject(announcementSaveDto);
         announcement.setCreatedAt(LocalDateTime.now());
         announcement.setLastUpdatedAt(LocalDateTime.now());
         announcement.setCollege(college);
 
         announcementRepository.save(announcement);
 
-        return converter.announcementObjectToAnnouncementDto(announcement);
+        return ObjectDtoConverter.announcementObjectToAnnouncementDto(announcement);
     }
 
     public AnnouncementDto findAnnouncementById(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-        return converter.announcementObjectToAnnouncementDto(
+        return ObjectDtoConverter.announcementObjectToAnnouncementDto(
                 checkAnnouncementExists(stringUUID)
         );
     }
@@ -52,6 +52,7 @@ public class AnnouncementService {
         return announcementsPage.map(ObjectDtoConverter::announcementObjectToAnnouncementDto);
     }
 
+    @Transactional
     public AnnouncementDto updateAnnouncement(String stringUUID, AnnouncementSaveDto announcementSaveDto, String collegeEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         Announcement announcement = checkAnnouncementExists(stringUUID);
         College college = checkCollegeExists(collegeEmail);
@@ -70,9 +71,10 @@ public class AnnouncementService {
 
         announcementRepository.save(announcement);
 
-        return converter.announcementObjectToAnnouncementDto(announcement);
+        return ObjectDtoConverter.announcementObjectToAnnouncementDto(announcement);
     }
 
+    @Transactional
     public void removeAnnouncement(String stringUUID, String collegeEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         Announcement announcement = checkAnnouncementExists(stringUUID);
         College college = checkCollegeExists(collegeEmail);
@@ -82,7 +84,7 @@ public class AnnouncementService {
     }
 
     private Announcement checkAnnouncementExists(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-        return announcementRepository.findById(converter.stringUUIDToUUID(stringUUID))
+        return announcementRepository.findById(ObjectDtoConverter.stringUUIDToUUID(stringUUID))
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 String.format("Announcement with %s id not found.", stringUUID)

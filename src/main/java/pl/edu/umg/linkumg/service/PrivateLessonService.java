@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.edu.umg.linkumg.dtos.resources.PrivateLessonDto;
 import pl.edu.umg.linkumg.dtos.resources.save.PrivateLessonSaveDto;
 import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
@@ -22,7 +23,6 @@ public class PrivateLessonService {
 
     private PrivateLessonRepository privateLessonRepository;
     private UserRepository userRepository;
-    private ObjectDtoConverter converter;
 
     public PrivateLessonDto createNewPrivateLesson(PrivateLessonSaveDto privateLessonSaveDto, String studentEmail) throws ResourceNotFoundException {
         Student student = checkStudentExists(studentEmail);
@@ -52,6 +52,7 @@ public class PrivateLessonService {
         return privateLessonPage.map(ObjectDtoConverter::privateLessonObjectToPrivateLessonDto);
     }
 
+    @Transactional
     public PrivateLessonDto updatePrivateLesson(String stringUUID, PrivateLessonSaveDto privateLessonSaveDto, String studentEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         PrivateLesson privateLesson = checkPrivateLessonExists(stringUUID);
         Student student = checkStudentExists(studentEmail);
@@ -77,6 +78,7 @@ public class PrivateLessonService {
         return ObjectDtoConverter.privateLessonObjectToPrivateLessonDto(privateLesson);
     }
 
+    @Transactional
     public void removePrivateLesson(String stringUUID, String studentEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         PrivateLesson privateLesson = checkPrivateLessonExists(stringUUID);
         Student student = checkStudentExists(studentEmail);
