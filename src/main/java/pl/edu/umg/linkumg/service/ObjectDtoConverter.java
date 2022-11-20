@@ -135,7 +135,8 @@ public class ObjectDtoConverter {
                         company.getSocials().getGithub(),
                         company.getSocials().getLinkedin(),
                         company.getSocials().getFacebook(),
-                        company.getSocials().getInstagram()
+                        company.getSocials().getInstagram(),
+                        company.getSocials().getOwnSite()
                 ),
                 company.getPathToAvatar(),
                 company.getNip()
@@ -162,7 +163,8 @@ public class ObjectDtoConverter {
                         student.getSocials().getGithub(),
                         student.getSocials().getLinkedin(),
                         student.getSocials().getFacebook(),
-                        student.getSocials().getInstagram()
+                        student.getSocials().getInstagram(),
+                        student.getSocials().getOwnSite()
                 ),
                 student.getPathToAvatar(),
                 student.getIndexNumber(),

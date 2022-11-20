@@ -1,7 +1,7 @@
 package pl.edu.umg.linkumg.repositories;
 
 import org.springframework.data.repository.CrudRepository;
-import pl.edu.umg.linkumg.models.ActivationToken;
+import pl.edu.umg.linkumg.models.tokens.ActivationToken;
 
 import java.util.Optional;
 import java.util.UUID;

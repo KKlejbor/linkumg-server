@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -39,35 +40,52 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeRequests(auth -> auth
-                        //todo constants
-                        .antMatchers(HttpMethod.POST, "/announcements").hasRole("COLLEGE")
+                        .antMatchers(HttpMethod.POST, "/companies").not().authenticated()
+                        .antMatchers(HttpMethod.POST, "/students").not().authenticated()
+                        .antMatchers(HttpMethod.POST, "/users/activate/{token}").not().authenticated()
+                        .antMatchers(HttpMethod.POST, "/users/login").not().authenticated()
+                        .antMatchers(HttpMethod.POST, "/users/renewToken").not().authenticated()
+                        .antMatchers(HttpMethod.POST, "/users/remindPassword/{email}").not().authenticated()
+                        .antMatchers(HttpMethod.POST, "/users/changePassword/{token}").not().authenticated()
+
                         .antMatchers(HttpMethod.GET, "/announcements/{stringUUID}").authenticated()
                         .antMatchers(HttpMethod.GET, "/announcements").authenticated()
-                        .antMatchers(HttpMethod.PATCH, "/announcements/{stringUUID}").hasRole("COLLEGE")
-                        .antMatchers(HttpMethod.DELETE, "/announcements/{stringUUID}").hasRole("COLLEGE")
-
-                        .antMatchers(HttpMethod.POST, "/jobOffers").hasRole("COMPANY")
                         .antMatchers(HttpMethod.GET, "/jobOffers/{stringUUID}").authenticated()
                         .antMatchers(HttpMethod.GET, "/jobOffers").authenticated()
-                        .antMatchers(HttpMethod.PATCH, "/jobOffers/{stringUUID}").hasRole("COMPANY")
-                        .antMatchers(HttpMethod.DELETE, "/jobOffers/{stringUUID}").hasRole("COMPANY")
-
-                        .antMatchers(HttpMethod.POST, "/privateLessons").hasRole("STUDENT")
                         .antMatchers(HttpMethod.GET, "/privateLessons/{stringUUID}").authenticated()
                         .antMatchers(HttpMethod.GET, "/privateLessons").authenticated()
+                        .antMatchers(HttpMethod.POST, "/users/logout").authenticated()
+                        .antMatchers(HttpMethod.GET, "/users/{stringUUID}").authenticated()
+                        .antMatchers(HttpMethod.POST, "/users/changePassword").authenticated()
+
+                        .antMatchers(HttpMethod.PATCH, "/students").hasRole("STUDENT")
+                        .antMatchers(HttpMethod.POST, "/privateLessons").hasRole("STUDENT")
                         .antMatchers(HttpMethod.PATCH, "/privateLessons/{stringUUID}").hasRole("STUDENT")
                         .antMatchers(HttpMethod.DELETE, "/privateLessons/{stringUUID}").hasRole("STUDENT")
 
+                        .antMatchers(HttpMethod.PATCH, "/companies").hasRole("COMPANY")
+                        .antMatchers(HttpMethod.POST, "/jobOffers").hasRole("COMPANY")
+                        .antMatchers(HttpMethod.PATCH, "/jobOffers/{stringUUID}").hasRole("COMPANY")
+                        .antMatchers(HttpMethod.DELETE, "/jobOffers/{stringUUID}").hasRole("COMPANY")
+
+                        .antMatchers(HttpMethod.PATCH, "/colleges").hasRole("COLLEGE")
+                        .antMatchers(HttpMethod.POST, "/announcements").hasRole("COLLEGE")
+                        .antMatchers(HttpMethod.PATCH, "/announcements/{stringUUID}").hasRole("COLLEGE")
+                        .antMatchers(HttpMethod.DELETE, "/announcements/{stringUUID}").hasRole("COLLEGE")
+
+                        .antMatchers(HttpMethod.POST, "/collages").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.POST, "/users/ban/{stringUUID}").hasRole("ADMIN")
+
                         .anyRequest()
-                        .permitAll()
+                        .hasRole("ADMIN")
                 )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
     }
-
 
     @Bean
     JwtDecoder jwtDecoder() {

@@ -27,18 +27,14 @@ public class AnnouncementController {
     public ResponseEntity<AnnouncementDto> createAnnouncement(@RequestBody AnnouncementSaveDto announcementDto, Authentication authentication) throws ResourceNotFoundException {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(
-                        announcementService.createAnnouncement(announcementDto, authentication.getName())
-                );
+                .body(announcementService.createAnnouncement(announcementDto, authentication.getName()));
     }
 
     @GetMapping("/{stringUUID}")
     public ResponseEntity<AnnouncementDto> getAnnouncementById(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
         return ResponseEntity
                 .ok()
-                .body(
-                        announcementService.findAnnouncementById(stringUUID)
-                );
+                .body(announcementService.findAnnouncementById(stringUUID));
     }
 
     @GetMapping
@@ -52,9 +48,7 @@ public class AnnouncementController {
         Pageable pageable = PageRequest.of(page - 1, pageSize).withSort(directionObj, sortObj);
         return ResponseEntity
                 .ok()
-                .body(
-                        announcementService.findAnnouncementsPage(pageable, contain)
-                );
+                .body(announcementService.findAnnouncementsPage(pageable, contain));
     }
 
     @PatchMapping("/{stringUUID}")
@@ -63,9 +57,7 @@ public class AnnouncementController {
                                                               Authentication authentication) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         return ResponseEntity
                 .ok()
-                .body(
-                        announcementService.updateAnnouncement(stringUUID, announcementDto, authentication.getName())
-                );
+                .body(announcementService.updateAnnouncement(stringUUID, announcementDto, authentication.getName()));
     }
 
     @DeleteMapping("/{stringUUID}")

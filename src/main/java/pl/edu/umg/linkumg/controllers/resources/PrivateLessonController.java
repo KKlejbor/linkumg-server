@@ -26,18 +26,14 @@ public class PrivateLessonController {
     public ResponseEntity<PrivateLessonDto> createPrivateLesson(@RequestBody PrivateLessonSaveDto privateLessonDto, Authentication authentication) throws ResourceNotFoundException {
         return ResponseEntity
                 .ok()
-                .body(
-                        privateLessonService.createNewPrivateLesson(privateLessonDto, authentication.getName())
-                );
+                .body(privateLessonService.createNewPrivateLesson(privateLessonDto, authentication.getName()));
     }
 
     @GetMapping("/{stringUUID}")
     public ResponseEntity<PrivateLessonDto> getPrivateLessonById(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
         return ResponseEntity
                 .ok()
-                .body(
-                        privateLessonService.findPrivateLessonById(stringUUID)
-                );
+                .body(privateLessonService.findPrivateLessonById(stringUUID));
     }
 
     @GetMapping
@@ -57,23 +53,21 @@ public class PrivateLessonController {
         Pageable pageable = PageRequest.of(page - 1, pageSize).withSort(directionObj, sortObj);
         return ResponseEntity
                 .ok()
-                .body(
-                        privateLessonService.findPrivateLessonsPage(pageable, contain, category, location)
-                );
+                .body(privateLessonService.findPrivateLessonsPage(pageable, contain, category, location));
     }
 
     @PatchMapping("/{stringUUID}")
     public ResponseEntity<PrivateLessonDto> updatePrivateLesson(@PathVariable String stringUUID, @RequestBody PrivateLessonSaveDto privateLessonDto, Authentication authentication) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         return ResponseEntity
                 .ok()
-                .body(
-                        privateLessonService.updatePrivateLesson(stringUUID, privateLessonDto, authentication.getName())
-                );
+                .body(privateLessonService.updatePrivateLesson(stringUUID, privateLessonDto, authentication.getName()));
     }
 
     @DeleteMapping("/{stringUUID}")
     public ResponseEntity<?> removePrivateLesson(@PathVariable String stringUUID, Authentication authentication) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         privateLessonService.removePrivateLesson(stringUUID, authentication.getName());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 }

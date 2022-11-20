@@ -2,14 +2,17 @@ package pl.edu.umg.linkumg.service;
 
 import com.sendgrid.Method;
 import com.sendgrid.Request;
-import com.sendgrid.Response;
 import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import com.sendgrid.helpers.mail.objects.Personalization;
 import lombok.AllArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import pl.edu.umg.linkumg.models.tokens.ActivationToken;
+import pl.edu.umg.linkumg.models.tokens.Token;
 
 import java.io.IOException;
 import java.net.URL;
@@ -18,47 +21,52 @@ import java.net.URL;
 @AllArgsConstructor
 public class SendGridService {
 
+    private static final Logger LOGGER = LogManager.getLogger(SendGridService.class);
+    private static final String EMAIL_FROM_STRING = "umglink@gmail.com";
+    private final Email emailFrom = new Email(EMAIL_FROM_STRING);
+    private static final String ACTIVATION_EMAIL_TEMPLATE_ID = "d-acabfe4565e8431f83500137af6a8375";
+    private static final String PASSWORD_REMIND_EMAIL_TEMPLATE_ID = "d-acabfe4565e8431f83500137af6a8375";
+
     private SendGrid sendGrid;
 
-    public void sendEmail() throws IOException {
-        Email from = new Email("umglink@gmail.com");
-        String subject = "Sending with SendGrid is Fun";
-        Email to = new Email("radek.paradecki@gmail.com");
-        Content content = new Content("text/plain", "and easy to do anywhere, even with Java");
-        var templateId = "d-acabfe4565e8431f83500137af6a8375";
-//        Mail mail = new Mail(from, subject, to, description);
-        Mail mail = new Mail();
-        mail.setFrom(from);
-        mail.setTemplateId(templateId);
-        Personalization personalization = new Personalization();
-        personalization.addDynamicTemplateData("name", "Radek");
-        URL url = new URL("http://localhost:8080");
-        personalization.addDynamicTemplateData("link", url);
-        personalization.addTo(to);
-        mail.addPersonalization(personalization);
-        Request request = new Request();
-        request.setMethod(Method.POST);
-        request.setEndpoint("mail/send");
-        request.setBody(mail.build());
-        Response response = sendGrid.api(request);
-        System.out.println(response.getStatusCode());
-        System.out.println(response.getBody());
-        System.out.println(response.getHeaders());
-    }
+    public void sendEmail(Token token) {
+        Email emailTo = new Email(token.getUser().getEmail());
 
-    public void sendActivationEmail(String url) throws IOException {
-        Email from = new Email("umglink@gmail.com");
-        String subject = "Active";
-        Email to = new Email("radek.paradecki@gmail.com");
-        Content content = new Content("text/plain", "Url: " + url);
-        Mail mail = new Mail(from, subject, to, content);
-        Request request = new Request();
-        request.setMethod(Method.POST);
-        request.setEndpoint("mail/send");
-        request.setBody(mail.build());
-        Response response = sendGrid.api(request);
-//        System.out.println(response.getStatusCode());
-//        System.out.println(response.getBody());
-//        System.out.println(response.getHeaders());
+        Mail mail = new Mail();
+        mail.setFrom(emailFrom);
+        String path;
+        if (token instanceof ActivationToken) {
+            mail.setTemplateId(ACTIVATION_EMAIL_TEMPLATE_ID);
+            path = "/activate";
+        } else {
+            mail.setTemplateId(PASSWORD_REMIND_EMAIL_TEMPLATE_ID);
+            path = "/changePassword";
+        }
+
+        try {
+            Personalization personalization = new Personalization();
+            personalization.addDynamicTemplateData("name", token.getUser().getName());
+            URL url = new URL(
+                    ServletUriComponentsBuilder
+                            .fromCurrentContextPath()
+                            .path(path)
+                            .queryParam("token", token.getToken())
+                            .build()
+                            .toUriString()
+            );
+
+            personalization.addDynamicTemplateData("link", url);
+            personalization.addTo(emailTo);
+            mail.addPersonalization(personalization);
+
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            sendGrid.api(request);
+
+        } catch (IOException e) {
+            LOGGER.error(e);
+        }
     }
 }

@@ -4,9 +4,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import pl.edu.umg.linkumg.dtos.LoginDto;
-import pl.edu.umg.linkumg.dtos.RefreshTokenDto;
+import pl.edu.umg.linkumg.dtos.PasswordChangeDto;
 import pl.edu.umg.linkumg.dtos.TokenDto;
 import pl.edu.umg.linkumg.exceptions.*;
 import pl.edu.umg.linkumg.service.UserService;
@@ -18,40 +19,28 @@ public class UserController {
 
     private UserService userService;
 
-    /**
-     * @param loginDto
-     * @return {@link TokenDto}
-     * @throws UserIsNotActivatedException
-     * @throws UserIsBannedException
-     * @throws UserBadCredentialsException
-     */
     @PostMapping("/login")
     public ResponseEntity<TokenDto> login(@RequestBody LoginDto loginDto) throws UserIsNotActivatedException, UserIsBannedException, UserBadCredentialsException, ResourceNotFoundException {
         return ResponseEntity
                 .accepted()
-                .body(
-                        userService.generateTokenByCredentials(loginDto)
-                );
+                .body(userService.generateTokenByCredentials(loginDto));
     }
 
     @PostMapping("/renewToken")
-    public ResponseEntity<TokenDto> renewAccessToken(RefreshTokenDto refreshTokenDto) throws UserIsBannedException, UserIsNotActivatedException, ResourceNotFoundException, TokenExpiredException {
+    public ResponseEntity<TokenDto> renewAccessToken(String token) throws UserIsBannedException, UserIsNotActivatedException, ResourceNotFoundException, TokenExpiredException {
         return ResponseEntity
                 .accepted()
-                .body(userService.renewToken(refreshTokenDto));
+                .body(userService.renewToken(token));
     }
 
     // TODO: logout
-    public void logout() {
-
+    public ResponseEntity<?> logout() {
+        userService.logout();
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 
-    /**
-     * @param stringUUID
-     * @return
-     * @throws ResourceNotFoundException
-     * @throws UUIDConversionException
-     */
     @GetMapping("/{stringUUID}")
     public ResponseEntity<?> getUser(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
         return ResponseEntity
@@ -72,21 +61,43 @@ public class UserController {
                 ));
     }
 
-    @GetMapping("/activate")
-    public ResponseEntity<?> activateAccount(@RequestParam String token) throws ResourceNotFoundException, TokenExpiredException {
-        userService.activate(token);
-        return ResponseEntity.noContent().build();
+    @PostMapping("/remindPassword/{email}")
+    public ResponseEntity<?> remindPassword(@PathVariable String email) throws ResourceNotFoundException {
+        userService.remindPassword(email);
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 
-    @PostMapping("/remindPassword/{email}")
-    public ResponseEntity<?> remindPassword(@PathVariable String email) {
-        userService.remindPassword(email);
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/activate/{token}")
+    public ResponseEntity<String> activateAccount(@PathVariable String token) throws ResourceNotFoundException, TokenExpiredException {
+        userService.activate(token);
+        return ResponseEntity
+                .ok()
+                .body("Your account is activated.");
+    }
+
+    @PatchMapping("/changePassword")
+    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDto passwordChangeDto, Authentication authentication) throws ResourceNotFoundException {
+        userService.changePassword(passwordChangeDto, authentication.getName());
+        return ResponseEntity
+                .ok()
+                .body("Password changed.");
+    }
+
+    @PatchMapping("/changePassword/{token}")
+    public ResponseEntity<String> changePasswordByRemindToken(@PathVariable String token, @RequestBody PasswordChangeDto passwordChangeDto) throws TokenExpiredException, ResourceNotFoundException {
+        userService.changePasswordByRemindToken(passwordChangeDto, token);
+        return ResponseEntity
+                .ok()
+                .body("Password changed.");
     }
 
     @PatchMapping("/ban/{stringUUID}")
     public ResponseEntity<?> banUser(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
         userService.banUser(stringUUID);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 }

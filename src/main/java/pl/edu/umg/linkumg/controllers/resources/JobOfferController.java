@@ -27,18 +27,14 @@ public class JobOfferController {
     public ResponseEntity<JobOfferDto> createJobOffer(@RequestBody JobOfferSaveDto jobOfferDto, Authentication authentication) throws ResourceNotFoundException {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(
-                        jobOfferService.createJobOffer(jobOfferDto, authentication.getName())
-                );
+                .body(jobOfferService.createJobOffer(jobOfferDto, authentication.getName()));
     }
 
     @GetMapping("/{stringUUID}")
     public ResponseEntity<JobOfferDto> getJobOfferById(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
         return ResponseEntity
                 .ok()
-                .body(
-                        jobOfferService.findJobOfferById(stringUUID)
-                );
+                .body(jobOfferService.findJobOfferById(stringUUID));
     }
 
     @GetMapping
@@ -55,9 +51,7 @@ public class JobOfferController {
         Pageable pageable = PageRequest.of(page - 1, pageSize).withSort(directionObj, sortObj);
         return ResponseEntity
                 .ok()
-                .body(
-                        jobOfferService.findJobOfferPage(pageable, contain, location, salaryDown, salaryUp)
-                );
+                .body(jobOfferService.findJobOfferPage(pageable, contain, location, salaryDown, salaryUp));
 
     }
 
@@ -65,9 +59,7 @@ public class JobOfferController {
     public ResponseEntity<JobOfferDto> updateJobOffer(@PathVariable String stringUUID, @RequestBody JobOfferSaveDto jobOfferDto, Authentication authentication) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
         return ResponseEntity
                 .ok()
-                .body(
-                        jobOfferService.updateJobOffer(stringUUID, jobOfferDto, authentication.getName())
-                );
+                .body(jobOfferService.updateJobOffer(stringUUID, jobOfferDto, authentication.getName()));
     }
 
     @DeleteMapping("/{stringUUID}")
