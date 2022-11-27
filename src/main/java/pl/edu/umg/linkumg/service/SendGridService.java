@@ -25,7 +25,7 @@ public class SendGridService {
     private static final String EMAIL_FROM_STRING = "umglink@gmail.com";
     private final Email emailFrom = new Email(EMAIL_FROM_STRING);
     private static final String ACTIVATION_EMAIL_TEMPLATE_ID = "d-acabfe4565e8431f83500137af6a8375";
-    private static final String PASSWORD_REMIND_EMAIL_TEMPLATE_ID = "d-acabfe4565e8431f83500137af6a8375";
+    private static final String PASSWORD_REMIND_EMAIL_TEMPLATE_ID = "d-ffbc23d4ad184bec8880e0a1fafabe72";
 
     private SendGrid sendGrid;
 
