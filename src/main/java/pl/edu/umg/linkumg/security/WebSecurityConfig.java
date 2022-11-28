@@ -44,14 +44,15 @@ public class WebSecurityConfig {
                 .authorizeRequests(auth -> auth
                         .antMatchers(HttpMethod.POST, "/companies").not().authenticated()
                         .antMatchers(HttpMethod.POST, "/students").not().authenticated()
-                        .antMatchers(HttpMethod.POST, "/users/activate/{token}").not().authenticated()
+                        .antMatchers(HttpMethod.PATCH, "/users/activate/{token}").not().authenticated()
                         .antMatchers(HttpMethod.POST, "/users/login").not().authenticated()
                         .antMatchers(HttpMethod.POST, "/users/renewToken").not().authenticated()
                         .antMatchers(HttpMethod.POST, "/users/remindPassword/{email}").not().authenticated()
-                        .antMatchers(HttpMethod.POST, "/users/changePassword/{token}").not().authenticated()
+                        .antMatchers(HttpMethod.PATCH, "/users/changePassword/{token}").not().authenticated()
 
                         .antMatchers(HttpMethod.GET, "/announcements/{stringUUID}").authenticated()
                         .antMatchers(HttpMethod.GET, "/announcements").authenticated()
+                        .antMatchers(HttpMethod.GET, "/announcements/image/{fileName}").authenticated()
                         .antMatchers(HttpMethod.GET, "/jobOffers/{stringUUID}").authenticated()
                         .antMatchers(HttpMethod.GET, "/jobOffers").authenticated()
                         .antMatchers(HttpMethod.GET, "/privateLessons/{stringUUID}").authenticated()
@@ -59,6 +60,8 @@ public class WebSecurityConfig {
                         .antMatchers(HttpMethod.POST, "/users/logout").authenticated()
                         .antMatchers(HttpMethod.GET, "/users/{stringUUID}").authenticated()
                         .antMatchers(HttpMethod.POST, "/users/changePassword").authenticated()
+                        .antMatchers(HttpMethod.GET, "/users/image/{fileName}").authenticated()
+                        .antMatchers(HttpMethod.POST, "/users/image/{stringUUID}").authenticated()
 
                         .antMatchers(HttpMethod.PATCH, "/students").hasRole("STUDENT")
                         .antMatchers(HttpMethod.POST, "/privateLessons").hasRole("STUDENT")
@@ -72,6 +75,7 @@ public class WebSecurityConfig {
 
                         .antMatchers(HttpMethod.PATCH, "/colleges").hasRole("COLLEGE")
                         .antMatchers(HttpMethod.POST, "/announcements").hasRole("COLLEGE")
+                        .antMatchers(HttpMethod.GET, "/announcements/image/{stringUUID}").authenticated()
                         .antMatchers(HttpMethod.PATCH, "/announcements/{stringUUID}").hasRole("COLLEGE")
                         .antMatchers(HttpMethod.DELETE, "/announcements/{stringUUID}").hasRole("COLLEGE")
 

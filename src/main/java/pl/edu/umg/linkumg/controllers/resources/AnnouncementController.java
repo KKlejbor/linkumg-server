@@ -1,20 +1,28 @@
 package pl.edu.umg.linkumg.controllers.resources;
 
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import pl.edu.umg.linkumg.dtos.resources.AnnouncementDto;
 import pl.edu.umg.linkumg.dtos.resources.save.AnnouncementSaveDto;
 import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
 import pl.edu.umg.linkumg.exceptions.ResourceNotFoundException;
 import pl.edu.umg.linkumg.exceptions.UUIDConversionException;
 import pl.edu.umg.linkumg.service.AnnouncementService;
+import pl.edu.umg.linkumg.service.ImageService;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLConnection;
 
 @RestController
 @RequestMapping("/announcements")
@@ -22,6 +30,7 @@ import pl.edu.umg.linkumg.service.AnnouncementService;
 public class AnnouncementController {
 
     private AnnouncementService announcementService;
+    private ImageService imageService;
 
     @PostMapping
     public ResponseEntity<AnnouncementDto> createAnnouncement(@RequestBody AnnouncementSaveDto announcementDto, Authentication authentication) throws ResourceNotFoundException {
@@ -66,5 +75,22 @@ public class AnnouncementController {
         return ResponseEntity
                 .noContent()
                 .build();
+    }
+
+    @PostMapping("/image/{stringUUID}")
+    public ResponseEntity<String> saveAnnouncementImage(@PathVariable String stringUUID, @RequestParam MultipartFile image) throws IOException, UUIDConversionException {
+        return ResponseEntity
+                .ok()
+                .body(imageService.saveAnnouncementImage(stringUUID, image));
+    }
+
+    @GetMapping("/image/{fileName}")
+    public ResponseEntity<InputStreamResource> getAnnouncementImage(@PathVariable String fileName) throws IOException {
+        InputStream inputStream = imageService.getAnnouncementImage(fileName);
+        return ResponseEntity.ok()
+                .contentType(
+                        MediaType.valueOf(
+                                URLConnection.guessContentTypeFromStream(inputStream)))
+                .body(new InputStreamResource(inputStream));
     }
 }

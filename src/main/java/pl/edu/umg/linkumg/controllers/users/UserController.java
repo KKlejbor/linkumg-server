@@ -1,16 +1,24 @@
 package pl.edu.umg.linkumg.controllers.users;
 
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import pl.edu.umg.linkumg.dtos.LoginDto;
 import pl.edu.umg.linkumg.dtos.PasswordChangeDto;
 import pl.edu.umg.linkumg.dtos.TokenDto;
 import pl.edu.umg.linkumg.exceptions.*;
+import pl.edu.umg.linkumg.service.ImageService;
 import pl.edu.umg.linkumg.service.UserService;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLConnection;
 
 @RestController
 @RequestMapping("/users")
@@ -18,6 +26,7 @@ import pl.edu.umg.linkumg.service.UserService;
 public class UserController {
 
     private UserService userService;
+    private ImageService imageService;
 
     @PostMapping("/login")
     public ResponseEntity<TokenDto> login(@RequestBody LoginDto loginDto) throws UserIsNotActivatedException, UserIsBannedException, UserBadCredentialsException, ResourceNotFoundException {
@@ -99,5 +108,22 @@ public class UserController {
         return ResponseEntity
                 .noContent()
                 .build();
+    }
+
+    @PostMapping("/image/{stringUUID}")
+    public ResponseEntity<String> saveUserImage(@PathVariable String stringUUID, @RequestParam MultipartFile image) throws IOException, UUIDConversionException {
+        return ResponseEntity
+                .ok()
+                .body(imageService.saveUserImage(stringUUID, image));
+    }
+
+    @GetMapping("/image/{fileName}")
+    public ResponseEntity<InputStreamResource> getUserImage(@PathVariable String fileName) throws IOException {
+        InputStream inputStream = imageService.getUserImage(fileName);
+        return ResponseEntity.ok()
+                .contentType(
+                        MediaType.valueOf(
+                                URLConnection.guessContentTypeFromStream(inputStream)))
+                .body(new InputStreamResource(inputStream));
     }
 }
