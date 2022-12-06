@@ -7,9 +7,15 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,6 +30,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -40,12 +49,13 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
+                .cors().and()
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeRequests(auth -> auth
                         .antMatchers(HttpMethod.POST, "/companies").not().authenticated()
                         .antMatchers(HttpMethod.POST, "/students").not().authenticated()
                         .antMatchers(HttpMethod.PATCH, "/users/activate/{token}").not().authenticated()
-                        .antMatchers(HttpMethod.POST, "/users/login").not().authenticated()
+                        .antMatchers(HttpMethod.POST, "/api/users/login").permitAll()
                         .antMatchers(HttpMethod.POST, "/users/renewToken").not().authenticated()
                         .antMatchers(HttpMethod.POST, "/users/remindPassword/{email}").not().authenticated()
                         .antMatchers(HttpMethod.PATCH, "/users/changePassword/{token}").not().authenticated()
@@ -84,8 +94,7 @@ public class WebSecurityConfig {
                         .antMatchers(HttpMethod.POST, "/users/ban/{stringUUID}").hasRole("ADMIN")
 
                         .anyRequest()
-                        .hasRole("ADMIN")
-                )
+                        .hasRole("ADMIN"))
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
@@ -112,4 +121,34 @@ public class WebSecurityConfig {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
     }
+
+    // @Bean
+    // CorsConfigurationSource corsConfigurationSource() {
+    // CorsConfiguration corsConfiguration = new CorsConfiguration();
+    // corsConfiguration.setAllowedOrigins(Arrays.asList("http://client-prod:4173",
+    // "http://client-prod:80",
+    // "http://localhost:80", "http://localhost:4173", "*"));
+    // corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH",
+    // "DELETE", "PUT"));
+    // corsConfiguration.setAllowedHeaders(List.of("Authorization"));
+    // UrlBasedCorsConfigurationSource source = new
+    // UrlBasedCorsConfigurationSource();
+    // source.registerCorsConfiguration("/**", corsConfiguration);
+    // return source;
+    // }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(Arrays.asList("*"));
+        config.setAllowedMethods(Collections.singletonList("*"));
+        config.setAllowedHeaders(Collections.singletonList("*"));
+        config.setAllowCredentials(true);
+        config.applyPermitDefaultValues();
+
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
 }
