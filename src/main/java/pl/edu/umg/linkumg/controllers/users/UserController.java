@@ -21,109 +21,118 @@ import java.io.InputStream;
 import java.net.URLConnection;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
+@CrossOrigin(origins = "*")
 @AllArgsConstructor
 public class UserController {
 
-    private UserService userService;
-    private ImageService imageService;
+        private UserService userService;
+        private ImageService imageService;
 
-    @PostMapping("/login")
-    public ResponseEntity<TokenDto> login(@RequestBody LoginDto loginDto) throws UserIsNotActivatedException, UserIsBannedException, UserBadCredentialsException, ResourceNotFoundException {
-        return ResponseEntity
-                .accepted()
-                .body(userService.generateTokenByCredentials(loginDto));
-    }
+        @PostMapping("/login")
+        public ResponseEntity<TokenDto> login(@RequestBody LoginDto loginDto) throws UserIsNotActivatedException,
+                        UserIsBannedException, UserBadCredentialsException, ResourceNotFoundException {
+                return ResponseEntity
+                                .accepted()
+                                .body(userService.generateTokenByCredentials(loginDto));
+        }
 
-    @PostMapping("/renewToken")
-    public ResponseEntity<TokenDto> renewAccessToken(String token) throws UserIsBannedException, UserIsNotActivatedException, ResourceNotFoundException, TokenExpiredException {
-        return ResponseEntity
-                .accepted()
-                .body(userService.renewToken(token));
-    }
+        @PostMapping("/renewToken")
+        public ResponseEntity<TokenDto> renewAccessToken(String token) throws UserIsBannedException,
+                        UserIsNotActivatedException, ResourceNotFoundException, TokenExpiredException {
+                return ResponseEntity
+                                .accepted()
+                                .body(userService.renewToken(token));
+        }
 
-    // TODO: logout
-    public ResponseEntity<?> logout() {
-        userService.logout();
-        return ResponseEntity
-                .noContent()
-                .build();
-    }
+        // TODO: logout
+        public ResponseEntity<?> logout() {
+                userService.logout();
+                return ResponseEntity
+                                .noContent()
+                                .build();
+        }
 
-    @GetMapping("/{stringUUID}")
-    public ResponseEntity<?> getUser(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-        return ResponseEntity
-                .ok()
-                .body(userService.findUserById(stringUUID));
-    }
+        @GetMapping("/{stringUUID}")
+        public ResponseEntity<?> getUser(@PathVariable String stringUUID)
+                        throws ResourceNotFoundException, UUIDConversionException {
+                return ResponseEntity
+                                .ok()
+                                .body(userService.findUserById(stringUUID));
+        }
 
-    // TODO: getUsersPage
-    @GetMapping
-    public ResponseEntity<Page<?>> getUsersPage(@RequestParam(defaultValue = "1") int page,
-                                                @RequestParam(defaultValue = "10") int pageSize,
-                                                @RequestParam(defaultValue = "asc") String direction,
-                                                @RequestParam(defaultValue = "") String search) {
-        return ResponseEntity
-                .ok()
-                .body(userService.findUsersPage(
-                        PageRequest.of(page, pageSize)
-                ));
-    }
+        // TODO: getUsersPage
+        @GetMapping
+        public ResponseEntity<Page<?>> getUsersPage(@RequestParam(defaultValue = "1") int page,
+                        @RequestParam(defaultValue = "10") int pageSize,
+                        @RequestParam(defaultValue = "asc") String direction,
+                        @RequestParam(defaultValue = "") String search) {
+                return ResponseEntity
+                                .ok()
+                                .body(userService.findUsersPage(
+                                                PageRequest.of(page, pageSize)));
+        }
 
-    @PostMapping("/remindPassword/{email}")
-    public ResponseEntity<?> remindPassword(@PathVariable String email) throws ResourceNotFoundException {
-        userService.remindPassword(email);
-        return ResponseEntity
-                .noContent()
-                .build();
-    }
+        @PostMapping("/remindPassword/{email}")
+        public ResponseEntity<?> remindPassword(@PathVariable String email) throws ResourceNotFoundException {
+                userService.remindPassword(email);
+                return ResponseEntity
+                                .noContent()
+                                .build();
+        }
 
-    @PatchMapping("/activate/{token}")
-    public ResponseEntity<String> activateAccount(@PathVariable String token) throws ResourceNotFoundException, TokenExpiredException {
-        userService.activate(token);
-        return ResponseEntity
-                .ok()
-                .body("Your account is activated.");
-    }
+        @PatchMapping("/activate/{token}")
+        public ResponseEntity<String> activateAccount(@PathVariable String token)
+                        throws ResourceNotFoundException, TokenExpiredException {
+                userService.activate(token);
+                return ResponseEntity
+                                .ok()
+                                .body("Your account is activated.");
+        }
 
-    @PatchMapping("/changePassword")
-    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDto passwordChangeDto, Authentication authentication) throws ResourceNotFoundException {
-        userService.changePassword(passwordChangeDto, authentication.getName());
-        return ResponseEntity
-                .ok()
-                .body("Password changed.");
-    }
+        @PatchMapping("/changePassword")
+        public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDto passwordChangeDto,
+                        Authentication authentication) throws ResourceNotFoundException {
+                userService.changePassword(passwordChangeDto, authentication.getName());
+                return ResponseEntity
+                                .ok()
+                                .body("Password changed.");
+        }
 
-    @PatchMapping("/changePassword/{token}")
-    public ResponseEntity<String> changePasswordByRemindToken(@PathVariable String token, @RequestBody PasswordChangeDto passwordChangeDto) throws TokenExpiredException, ResourceNotFoundException {
-        userService.changePasswordByRemindToken(passwordChangeDto, token);
-        return ResponseEntity
-                .ok()
-                .body("Password changed.");
-    }
+        @PatchMapping("/changePassword/{token}")
+        public ResponseEntity<String> changePasswordByRemindToken(@PathVariable String token,
+                        @RequestBody PasswordChangeDto passwordChangeDto)
+                        throws TokenExpiredException, ResourceNotFoundException {
+                userService.changePasswordByRemindToken(passwordChangeDto, token);
+                return ResponseEntity
+                                .ok()
+                                .body("Password changed.");
+        }
 
-    @PatchMapping("/ban/{stringUUID}")
-    public ResponseEntity<?> banUser(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
-        userService.banUser(stringUUID);
-        return ResponseEntity
-                .noContent()
-                .build();
-    }
+        @PatchMapping("/ban/{stringUUID}")
+        public ResponseEntity<?> banUser(@PathVariable String stringUUID)
+                        throws ResourceNotFoundException, UUIDConversionException {
+                userService.banUser(stringUUID);
+                return ResponseEntity
+                                .noContent()
+                                .build();
+        }
 
-    @PostMapping("/image/{stringUUID}")
-    public ResponseEntity<String> saveUserImage(@PathVariable String stringUUID, @RequestParam MultipartFile image) throws IOException, UUIDConversionException {
-        return ResponseEntity
-                .ok()
-                .body(imageService.saveUserImage(stringUUID, image));
-    }
+        @PostMapping("/image/{stringUUID}")
+        public ResponseEntity<String> saveUserImage(@PathVariable String stringUUID, @RequestParam MultipartFile image)
+                        throws IOException, UUIDConversionException {
+                return ResponseEntity
+                                .ok()
+                                .body(imageService.saveUserImage(stringUUID, image));
+        }
 
-    @GetMapping("/image/{fileName}")
-    public ResponseEntity<InputStreamResource> getUserImage(@PathVariable String fileName) throws IOException {
-        InputStream inputStream = imageService.getUserImage(fileName);
-        return ResponseEntity.ok()
-                .contentType(
-                        MediaType.valueOf(
-                                URLConnection.guessContentTypeFromStream(inputStream)))
-                .body(new InputStreamResource(inputStream));
-    }
+        @GetMapping("/image/{fileName}")
+        public ResponseEntity<InputStreamResource> getUserImage(@PathVariable String fileName) throws IOException {
+                InputStream inputStream = imageService.getUserImage(fileName);
+                return ResponseEntity.ok()
+                                .contentType(
+                                                MediaType.valueOf(
+                                                                URLConnection.guessContentTypeFromStream(inputStream)))
+                                .body(new InputStreamResource(inputStream));
+        }
 }
