@@ -26,10 +26,16 @@ public class Student extends User {
     private int indexNumber;
     private String faculty;
 
+//    // TODO: 06/12/2022
+//    public Student() {
+//        this.socials = new Social();
+//    }
+
     public Student(@NonNull String email, @NonNull String password, @NonNull String name, String lastName, int indexNumber, String faculty) {
         super(email, password, name);
         this.lastName = lastName;
         this.indexNumber = indexNumber;
         this.faculty = faculty;
+        this.socials = new Social();
     }
 }

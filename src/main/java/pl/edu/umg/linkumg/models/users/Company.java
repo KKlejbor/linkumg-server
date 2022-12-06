@@ -24,5 +24,6 @@ public class Company extends User {
     public Company(@NonNull String email, @NonNull String password, @NonNull String name, String nip) {
         super(email, password, name);
         this.nip = nip;
+        this.socials = new Social();
     }
 }
