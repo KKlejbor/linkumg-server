@@ -6,11 +6,17 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import pl.edu.umg.linkumg.exceptions.*;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleUnknownExceptionAndLog(Exception exception) {
+        logger.log(Level.WARNING, exception.getMessage(), exception);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Unexpected error occurred, please contact: umglink@gmail.com");
@@ -41,6 +47,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleNotFoundException(ResourceNotFoundException exception) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .body(exception.getMessage());
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<String> handleValidationException(ValidationException exception){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(exception.getMessage());
     }
 }
