@@ -9,6 +9,7 @@ import pl.edu.umg.linkumg.dtos.users.register.CompanyRegisterDto;
 import pl.edu.umg.linkumg.dtos.users.update.CompanyUpdateDto;
 import pl.edu.umg.linkumg.exceptions.ResourceNotFoundException;
 import pl.edu.umg.linkumg.exceptions.ResourceViolationException;
+import pl.edu.umg.linkumg.exceptions.ValidationException;
 import pl.edu.umg.linkumg.service.UserService;
 
 @RestController
@@ -19,7 +20,7 @@ public class CompanyController {
     private UserService userService;
 
     @PostMapping
-    public ResponseEntity<?> registerCompany(@RequestBody CompanyRegisterDto companyRegisterDto) throws ResourceViolationException {
+    public ResponseEntity<?> registerCompany(@RequestBody CompanyRegisterDto companyRegisterDto) throws ResourceViolationException, ValidationException {
         userService.registerCompany(companyRegisterDto);
         return ResponseEntity
                 .noContent()
@@ -27,7 +28,7 @@ public class CompanyController {
     }
 
     @PatchMapping
-    public ResponseEntity<CompanyDto> updateCompany(@RequestBody CompanyUpdateDto companyUpdateDto, Authentication authentication) throws ResourceNotFoundException {
+    public ResponseEntity<CompanyDto> updateCompany(@RequestBody CompanyUpdateDto companyUpdateDto, Authentication authentication) throws ResourceNotFoundException, ValidationException {
         return ResponseEntity
                 .ok()
                 .body(userService.updateCompany(companyUpdateDto, authentication.getName()));

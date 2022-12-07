@@ -14,6 +14,7 @@ import pl.edu.umg.linkumg.dtos.resources.save.JobOfferSaveDto;
 import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
 import pl.edu.umg.linkumg.exceptions.ResourceNotFoundException;
 import pl.edu.umg.linkumg.exceptions.UUIDConversionException;
+import pl.edu.umg.linkumg.exceptions.ValidationException;
 import pl.edu.umg.linkumg.service.JobOfferService;
 
 @RestController
@@ -24,7 +25,7 @@ public class JobOfferController {
     private JobOfferService jobOfferService;
 
     @PostMapping
-    public ResponseEntity<JobOfferDto> createJobOffer(@RequestBody JobOfferSaveDto jobOfferDto, Authentication authentication) throws ResourceNotFoundException {
+    public ResponseEntity<JobOfferDto> createJobOffer(@RequestBody JobOfferSaveDto jobOfferDto, Authentication authentication) throws ResourceNotFoundException, ValidationException {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(jobOfferService.createJobOffer(jobOfferDto, authentication.getName()));
@@ -56,7 +57,7 @@ public class JobOfferController {
     }
 
     @PatchMapping("/{stringUUID}")
-    public ResponseEntity<JobOfferDto> updateJobOffer(@PathVariable String stringUUID, @RequestBody JobOfferSaveDto jobOfferDto, Authentication authentication) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
+    public ResponseEntity<JobOfferDto> updateJobOffer(@PathVariable String stringUUID, @RequestBody JobOfferSaveDto jobOfferDto, Authentication authentication) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException, ValidationException {
         return ResponseEntity
                 .ok()
                 .body(jobOfferService.updateJobOffer(stringUUID, jobOfferDto, authentication.getName()));

@@ -10,10 +10,12 @@ import pl.edu.umg.linkumg.dtos.resources.save.PrivateLessonSaveDto;
 import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
 import pl.edu.umg.linkumg.exceptions.ResourceNotFoundException;
 import pl.edu.umg.linkumg.exceptions.UUIDConversionException;
+import pl.edu.umg.linkumg.exceptions.ValidationException;
 import pl.edu.umg.linkumg.models.resources.PrivateLesson;
 import pl.edu.umg.linkumg.models.users.Student;
 import pl.edu.umg.linkumg.repositories.PrivateLessonRepository;
 import pl.edu.umg.linkumg.repositories.UserRepository;
+import pl.edu.umg.linkumg.validators.resources.PrivateLessonValidator;
 
 import java.time.LocalDateTime;
 
@@ -23,11 +25,12 @@ public class PrivateLessonService {
 
     private PrivateLessonRepository privateLessonRepository;
     private UserRepository userRepository;
+    private PrivateLessonValidator privateLessonValidator;
 
-    public PrivateLessonDto createNewPrivateLesson(PrivateLessonSaveDto privateLessonSaveDto, String studentEmail) throws ResourceNotFoundException {
+    public PrivateLessonDto createNewPrivateLesson(PrivateLessonSaveDto privateLessonSaveDto, String studentEmail) throws ResourceNotFoundException, ValidationException {
         Student student = checkStudentExists(studentEmail);
 
-        // TODO: validate privateLessonDto
+        privateLessonValidator.validatePrivateLessonCreate(privateLessonSaveDto);
 
         PrivateLesson privateLesson = ObjectDtoConverter.privateLessonSaveDtoToPrivateLessonObject(privateLessonSaveDto);
         privateLesson.setCreatedAt(LocalDateTime.now());
@@ -53,27 +56,41 @@ public class PrivateLessonService {
     }
 
     @Transactional
-    public PrivateLessonDto updatePrivateLesson(String stringUUID, PrivateLessonSaveDto privateLessonSaveDto, String studentEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
+    public PrivateLessonDto updatePrivateLesson(String stringUUID, PrivateLessonSaveDto privateLessonSaveDto, String studentEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException, ValidationException {
         PrivateLesson privateLesson = checkPrivateLessonExists(stringUUID);
         Student student = checkStudentExists(studentEmail);
         checkStudentHaveAccessToResource(student, privateLesson);
 
-        // TODO: validation
+        int changes = 0;
 
-        if (privateLessonSaveDto.category() != null)
+        if (privateLessonSaveDto.category() != null) {
+            privateLessonValidator.validateCategory(privateLessonSaveDto.category());
             privateLesson.setCategory(privateLessonSaveDto.category());
-        if (privateLessonSaveDto.location() != null)
+            changes++;
+        }
+        if (privateLessonSaveDto.location() != null) {
+            privateLessonValidator.validateLocation(privateLessonSaveDto.location());
             privateLesson.setLocation(privateLessonSaveDto.location());
-        if (privateLessonSaveDto.description() != null)
+            changes++;
+        }
+        if (privateLessonSaveDto.description() != null) {
+            privateLessonValidator.validateDescription(privateLessonSaveDto.description());
             privateLesson.setDescription(privateLessonSaveDto.description());
-        if (privateLessonSaveDto.title() != null)
+            changes++;
+        }
+        if (privateLessonSaveDto.title() != null) {
+            privateLessonValidator.validateTitle(privateLessonSaveDto.title());
             privateLesson.setTitle(privateLessonSaveDto.title());
-        if (privateLessonSaveDto.pricePerHour() > 0)
+            changes++;
+        }
+        if (privateLessonSaveDto.pricePerHour() != null) {
             privateLesson.setPricePerHour(privateLessonSaveDto.pricePerHour());
+        }
 
-        privateLesson.setLastUpdatedAt(LocalDateTime.now());
-
-        privateLessonRepository.save(privateLesson);
+        if (changes > 0) {
+            privateLesson.setLastUpdatedAt(LocalDateTime.now());
+            privateLessonRepository.save(privateLesson);
+        }
 
         return ObjectDtoConverter.privateLessonObjectToPrivateLessonDto(privateLesson);
     }

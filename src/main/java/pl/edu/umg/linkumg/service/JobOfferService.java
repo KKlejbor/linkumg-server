@@ -10,10 +10,12 @@ import pl.edu.umg.linkumg.dtos.resources.save.JobOfferSaveDto;
 import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
 import pl.edu.umg.linkumg.exceptions.ResourceNotFoundException;
 import pl.edu.umg.linkumg.exceptions.UUIDConversionException;
+import pl.edu.umg.linkumg.exceptions.ValidationException;
 import pl.edu.umg.linkumg.models.resources.JobOffer;
 import pl.edu.umg.linkumg.models.users.Company;
 import pl.edu.umg.linkumg.repositories.JobOfferRepository;
 import pl.edu.umg.linkumg.repositories.UserRepository;
+import pl.edu.umg.linkumg.validators.resources.JobOfferValidator;
 
 import java.time.LocalDateTime;
 
@@ -23,11 +25,12 @@ public class JobOfferService {
 
     private JobOfferRepository jobOfferRepository;
     private UserRepository userRepository;
+    private JobOfferValidator jobOfferValidator;
 
-    public JobOfferDto createJobOffer(JobOfferSaveDto jobOfferSaveDto, String companyEmail) throws ResourceNotFoundException {
+    public JobOfferDto createJobOffer(JobOfferSaveDto jobOfferSaveDto, String companyEmail) throws ResourceNotFoundException, ValidationException {
         Company company = checkCompanyExists(companyEmail);
 
-        // TODO: validate
+        jobOfferValidator.validateJobOfferCreate(jobOfferSaveDto);
 
         JobOffer jobOffer = ObjectDtoConverter.jobOfferSaveDtoToJobOfferObject(jobOfferSaveDto);
         jobOffer.setCreatedAt(LocalDateTime.now());
@@ -67,25 +70,43 @@ public class JobOfferService {
     }
 
     @Transactional
-    public JobOfferDto updateJobOffer(String stringUUID, JobOfferSaveDto jobOfferSaveDto, String companyEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
+    public JobOfferDto updateJobOffer(String stringUUID, JobOfferSaveDto jobOfferSaveDto, String companyEmail) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException, ValidationException {
         JobOffer jobOffer = checkJobOfferExists(stringUUID);
         Company company = checkCompanyExists(companyEmail);
         checkCompanyHaveAccessToResource(company, jobOffer);
 
-        // TODO: validation
+        int changes = 0;
 
-        if (jobOfferSaveDto.title() != null)
+        if (jobOfferSaveDto.title() != null) {
+            jobOfferValidator.validateTitle(jobOfferSaveDto.title());
             jobOffer.setTitle(jobOfferSaveDto.title());
-        if (jobOfferSaveDto.salaryDown() != null)
+            changes++;
+        }
+        if (jobOfferSaveDto.salaryDown() != null) {
+            jobOfferValidator.validateSalaryDown(jobOfferSaveDto.salaryDown(), jobOffer.getSalaryUp());
             jobOffer.setSalaryDown(jobOfferSaveDto.salaryDown());
-        if (jobOfferSaveDto.salaryUp() != null)
+            changes++;
+        }
+        if (jobOfferSaveDto.salaryUp() != null) {
+            jobOfferValidator.validateSalaryUp(jobOfferSaveDto.salaryUp(), jobOffer.getSalaryDown());
             jobOffer.setSalaryUp(jobOfferSaveDto.salaryUp());
-        if (jobOfferSaveDto.location() != null)
+            changes++;
+        }
+        if (jobOfferSaveDto.location() != null) {
+            jobOfferValidator.validateLocation(jobOfferSaveDto.location());
             jobOffer.setLocation(jobOfferSaveDto.location());
-        if (jobOfferSaveDto.description() != null)
+            changes++;
+        }
+        if (jobOfferSaveDto.description() != null) {
+            jobOfferValidator.validateDescription(jobOfferSaveDto.description());
             jobOffer.setDescription(jobOfferSaveDto.description());
+            changes++;
+        }
 
-        jobOfferRepository.save(jobOffer);
+        if(changes>0) {
+            jobOffer.setLastUpdatedAt(LocalDateTime.now());
+            jobOfferRepository.save(jobOffer);
+        }
 
         return ObjectDtoConverter.jobOfferObjectToJobOfferDto(jobOffer);
     }

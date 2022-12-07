@@ -17,6 +17,7 @@ import pl.edu.umg.linkumg.dtos.resources.save.AnnouncementSaveDto;
 import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
 import pl.edu.umg.linkumg.exceptions.ResourceNotFoundException;
 import pl.edu.umg.linkumg.exceptions.UUIDConversionException;
+import pl.edu.umg.linkumg.exceptions.ValidationException;
 import pl.edu.umg.linkumg.service.AnnouncementService;
 import pl.edu.umg.linkumg.service.ImageService;
 
@@ -33,7 +34,7 @@ public class AnnouncementController {
     private ImageService imageService;
 
     @PostMapping
-    public ResponseEntity<AnnouncementDto> createAnnouncement(@RequestBody AnnouncementSaveDto announcementDto, Authentication authentication) throws ResourceNotFoundException {
+    public ResponseEntity<AnnouncementDto> createAnnouncement(@RequestBody AnnouncementSaveDto announcementDto, Authentication authentication) throws ResourceNotFoundException, ValidationException {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(announcementService.createAnnouncement(announcementDto, authentication.getName()));
@@ -63,7 +64,7 @@ public class AnnouncementController {
     @PatchMapping("/{stringUUID}")
     public ResponseEntity<AnnouncementDto> updateAnnouncement(@PathVariable String stringUUID,
                                                               @RequestBody AnnouncementSaveDto announcementDto,
-                                                              Authentication authentication) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
+                                                              Authentication authentication) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException, ValidationException {
         return ResponseEntity
                 .ok()
                 .body(announcementService.updateAnnouncement(stringUUID, announcementDto, authentication.getName()));

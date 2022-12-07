@@ -42,14 +42,6 @@ public class UserController {
                 .body(userService.renewToken(token));
     }
 
-    // TODO: logout
-    public ResponseEntity<?> logout() {
-        userService.logout();
-        return ResponseEntity
-                .noContent()
-                .build();
-    }
-
     @GetMapping("/{stringUUID}")
     public ResponseEntity<?> getUser(@PathVariable String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
         return ResponseEntity
@@ -87,7 +79,7 @@ public class UserController {
     }
 
     @PatchMapping("/changePassword")
-    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDto passwordChangeDto, Authentication authentication) throws ResourceNotFoundException {
+    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDto passwordChangeDto, Authentication authentication) throws ResourceNotFoundException, ValidationException {
         userService.changePassword(passwordChangeDto, authentication.getName());
         return ResponseEntity
                 .ok()
@@ -95,7 +87,7 @@ public class UserController {
     }
 
     @PatchMapping("/changePassword/{token}")
-    public ResponseEntity<String> changePasswordByRemindToken(@PathVariable String token, @RequestBody PasswordChangeDto passwordChangeDto) throws TokenExpiredException, ResourceNotFoundException {
+    public ResponseEntity<String> changePasswordByRemindToken(@PathVariable String token, @RequestBody PasswordChangeDto passwordChangeDto) throws TokenExpiredException, ResourceNotFoundException, ValidationException {
         userService.changePasswordByRemindToken(passwordChangeDto, token);
         return ResponseEntity
                 .ok()

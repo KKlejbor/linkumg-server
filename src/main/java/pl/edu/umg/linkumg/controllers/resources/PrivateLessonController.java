@@ -13,6 +13,7 @@ import pl.edu.umg.linkumg.dtos.resources.save.PrivateLessonSaveDto;
 import pl.edu.umg.linkumg.exceptions.ResourceForbiddenException;
 import pl.edu.umg.linkumg.exceptions.ResourceNotFoundException;
 import pl.edu.umg.linkumg.exceptions.UUIDConversionException;
+import pl.edu.umg.linkumg.exceptions.ValidationException;
 import pl.edu.umg.linkumg.service.PrivateLessonService;
 
 @RestController
@@ -23,7 +24,7 @@ public class PrivateLessonController {
     private PrivateLessonService privateLessonService;
 
     @PostMapping
-    public ResponseEntity<PrivateLessonDto> createPrivateLesson(@RequestBody PrivateLessonSaveDto privateLessonDto, Authentication authentication) throws ResourceNotFoundException {
+    public ResponseEntity<PrivateLessonDto> createPrivateLesson(@RequestBody PrivateLessonSaveDto privateLessonDto, Authentication authentication) throws ResourceNotFoundException, ValidationException {
         return ResponseEntity
                 .ok()
                 .body(privateLessonService.createNewPrivateLesson(privateLessonDto, authentication.getName()));
@@ -57,7 +58,7 @@ public class PrivateLessonController {
     }
 
     @PatchMapping("/{stringUUID}")
-    public ResponseEntity<PrivateLessonDto> updatePrivateLesson(@PathVariable String stringUUID, @RequestBody PrivateLessonSaveDto privateLessonDto, Authentication authentication) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException {
+    public ResponseEntity<PrivateLessonDto> updatePrivateLesson(@PathVariable String stringUUID, @RequestBody PrivateLessonSaveDto privateLessonDto, Authentication authentication) throws ResourceNotFoundException, UUIDConversionException, ResourceForbiddenException, ValidationException {
         return ResponseEntity
                 .ok()
                 .body(privateLessonService.updatePrivateLesson(stringUUID, privateLessonDto, authentication.getName()));
