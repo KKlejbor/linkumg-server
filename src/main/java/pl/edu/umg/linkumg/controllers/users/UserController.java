@@ -22,6 +22,9 @@ import java.net.URLConnection;
 
 @RestController
 @RequestMapping("/users")
+// TODO: deployement
+//@RequestMapping("/api/users")
+@CrossOrigin(origins = "*")
 @AllArgsConstructor
 public class UserController {
 
