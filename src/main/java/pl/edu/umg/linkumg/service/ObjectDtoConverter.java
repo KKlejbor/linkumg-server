@@ -107,6 +107,7 @@ public class ObjectDtoConverter {
     public static CollegeDto collegeObjectToCollegeDto(College college){
         return new CollegeDto(
                 college.getClass().getSimpleName().toLowerCase(),
+                college.isActive(),
                 college.getUserId(),
                 college.getName(),
                 college.getCreatedAt(),
@@ -124,6 +125,7 @@ public class ObjectDtoConverter {
     public static CompanyDto companyObjectToCompanyDto(Company company){
         return new CompanyDto(
                 company.getClass().getSimpleName().toLowerCase(),
+                company.isActive(),
                 company.getUserId(),
                 company.getName(),
                 company.getCreatedAt(),
@@ -150,6 +152,7 @@ public class ObjectDtoConverter {
     public static StudentDto studentObjectToStudentDto(Student student){
         return new StudentDto(
                 student.getClass().getSimpleName().toLowerCase(),
+                student.isActive(),
                 student.getUserId(),
                 student.getName(),
                 student.getLastName(),
