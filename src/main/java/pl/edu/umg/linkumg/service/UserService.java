@@ -1,7 +1,6 @@
 package pl.edu.umg.linkumg.service;
 
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -428,10 +427,11 @@ public class UserService {
 
     private void saveNewInDB(User user) throws ResourceViolationException {
         try {
-            userRepository.save(user);
-        } catch (DataIntegrityViolationException e) {
+            checkUserExistsByEmail(user.getEmail());
+        } catch (Exception e) {
             throw new ResourceViolationException(String.format("Email %s already exists.", user.getEmail()));
         }
+        userRepository.save(user);
     }
 
     private User checkUserExistsById(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
