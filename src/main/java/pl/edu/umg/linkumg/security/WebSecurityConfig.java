@@ -67,6 +67,7 @@ public class WebSecurityConfig {
                         .antMatchers(HttpMethod.GET, "/privateLessons/{stringUUID}").authenticated()
                         .antMatchers(HttpMethod.GET, "/privateLessons").authenticated()
                         .antMatchers(HttpMethod.POST, "/users/logout").authenticated()
+                        .antMatchers(HttpMethod.GET, "/users/info").authenticated()
                         .antMatchers(HttpMethod.GET, "/users/{stringUUID}").authenticated()
                         .antMatchers(HttpMethod.POST, "/users/changePassword").authenticated()
                         .antMatchers(HttpMethod.GET, "/users/image/{fileName}").authenticated()

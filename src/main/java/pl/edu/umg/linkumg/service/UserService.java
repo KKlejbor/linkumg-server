@@ -62,16 +62,14 @@ public class UserService {
     private CollegeValidator collegeValidator;
 
     @Transactional
-    public void registerStudent(
-            StudentRegisterDto studentRegisterDto)
+    public void registerStudent(StudentRegisterDto studentRegisterDto)
             throws ResourceViolationException, ValidationException {
 
         studentValidator.validateStudentCreate(studentRegisterDto);
 
-        Student student = new Student(studentRegisterDto.email(),
-                passwordEncoder.encode(studentRegisterDto.password()),
-                studentRegisterDto.name(), studentRegisterDto.lastName(),
-                studentRegisterDto.indexNumber(), studentRegisterDto.faculty());
+        Student student = new Student(studentRegisterDto.email(), passwordEncoder.encode(studentRegisterDto.password()),
+                studentRegisterDto.name(), studentRegisterDto.lastName(), studentRegisterDto.indexNumber(),
+                studentRegisterDto.faculty());
 
         student.setCreatedAt(LocalDateTime.now());
         student.setLastUpdatedAt(LocalDateTime.now());
@@ -82,14 +80,12 @@ public class UserService {
     }
 
     @Transactional
-    public void registerCompany(
-            CompanyRegisterDto companyRegisterDto)
+    public void registerCompany(CompanyRegisterDto companyRegisterDto)
             throws ResourceViolationException, ValidationException {
 
         companyValidator.validateCompanyCreate(companyRegisterDto);
 
-        Company company = new Company(companyRegisterDto.email(),
-                passwordEncoder.encode(companyRegisterDto.password()),
+        Company company = new Company(companyRegisterDto.email(), passwordEncoder.encode(companyRegisterDto.password()),
                 companyRegisterDto.name(), companyRegisterDto.nip());
 
         company.setCreatedAt(LocalDateTime.now());
@@ -101,14 +97,12 @@ public class UserService {
     }
 
     @Transactional
-    public void registerCollege(
-            CollegeRegisterDto collegeRegisterDto)
+    public void registerCollege(CollegeRegisterDto collegeRegisterDto)
             throws ResourceViolationException, ValidationException {
 
         collegeValidator.validateCollegeCreate(collegeRegisterDto);
 
-        College college = new College(collegeRegisterDto.email(),
-                passwordEncoder.encode(collegeRegisterDto.password()),
+        College college = new College(collegeRegisterDto.email(), passwordEncoder.encode(collegeRegisterDto.password()),
                 collegeRegisterDto.name(), collegeRegisterDto.faculty());
 
         college.setCreatedAt(LocalDateTime.now());
@@ -121,34 +115,31 @@ public class UserService {
 
     @Transactional
     public TokenDto generateTokenByCredentials(LoginDto loginDto)
-            throws UserIsNotActivatedException, UserBadCredentialsException,
-            UserIsBannedException, ResourceNotFoundException {
+            throws UserIsNotActivatedException, UserBadCredentialsException, UserIsBannedException,
+            ResourceNotFoundException {
         User user = checkUserExistsByEmail(loginDto.email());
         if (!passwordEncoder.matches(loginDto.password(), user.getPassword())) {
             throw new UserBadCredentialsException("Bad credentials.");
         }
 
-        return new TokenDto(generateAccessToken(user),
-                generateRefreshToken(user));
+        return new TokenDto(generateAccessToken(user), generateRefreshToken(user));
     }
 
     @Transactional
     public TokenDto renewToken(String token)
-            throws UserIsBannedException, UserIsNotActivatedException,
-            ResourceNotFoundException, TokenExpiredException {
+            throws UserIsBannedException, UserIsNotActivatedException, ResourceNotFoundException,
+            TokenExpiredException {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
                                                           .orElseThrow(() -> new ResourceNotFoundException(
                                                                   String.format("Token %s not found.", token)));
 
         refreshToken.checkExpired();
 
-        return new TokenDto(generateAccessToken(refreshToken.getUser()),
-                refreshToken.getToken());
+        return new TokenDto(generateAccessToken(refreshToken.getUser()), refreshToken.getToken());
     }
 
     @Transactional
-    public void remindPassword(String email)
-            throws ResourceNotFoundException {
+    public void remindPassword(String email) throws ResourceNotFoundException {
         User user = checkUserExistsByEmail(email);
 
         RemindPasswordToken remindPasswordToken = new RemindPasswordToken(user);
@@ -157,22 +148,19 @@ public class UserService {
         sendGridService.sendEmail(remindPasswordToken);
     }
 
-    public Object findUserById(String stringUUID)
-            throws ResourceNotFoundException, UUIDConversionException {
-        User user = checkUserExistsById(stringUUID);
+    public Object findUserInfo(String email) throws ResourceNotFoundException {
+        User user = checkUserExistsByEmail(email);
 
-        if (user instanceof Student student) {
-            return ObjectDtoConverter.studentObjectToStudentDto(student);
-        } else if (user instanceof Company company) {
-            return ObjectDtoConverter.companyObjectToCompanyDto(company);
-        } else {
-            College college = (College) user;
-            return ObjectDtoConverter.collegeObjectToCollegeDto(college);
-        }
+        return userToSpecificObject(user);
     }
 
-    public Page<Object> findUsersPage(Pageable pageable, String type,
-            String email) {
+    public Object findUserById(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
+        User user = checkUserExistsById(stringUUID);
+
+        return userToSpecificObject(user);
+    }
+
+    public Page<Object> findUsersPage(Pageable pageable, String type, String email) {
         return switch (type) {
             case "Student" -> studentRepository.findAllByEmailContaining(pageable, email)
                                                .map(ObjectDtoConverter::studentObjectToStudentDto);
@@ -181,27 +169,13 @@ public class UserService {
             case "College" -> collegeRepository.findAllByEmailContaining(pageable, email)
                                                .map(ObjectDtoConverter::collegeObjectToCollegeDto);
             default -> userRepository.findAllByEmailContaining(pageable, email)
-                                     .map(user -> {
-                                         if (user instanceof Student student) {
-                                             return ObjectDtoConverter.studentObjectToStudentDto(
-                                                     student);
-                                         } else if (user instanceof Company company) {
-                                             return ObjectDtoConverter.companyObjectToCompanyDto(
-                                                     company);
-                                         } else {
-                                             College college = (College) user;
-                                             return ObjectDtoConverter.collegeObjectToCollegeDto(
-                                                     college);
-                                         }
-                                     });
+                                     .map(this::userToSpecificObject);
         };
     }
 
     @Transactional
-    public void activate(String token)
-            throws ResourceNotFoundException, TokenExpiredException {
-        ActivationToken activationToken = activationTokenRepository.findByToken(
-                                                                           token)
+    public void activate(String token) throws ResourceNotFoundException, TokenExpiredException {
+        ActivationToken activationToken = activationTokenRepository.findByToken(token)
                                                                    .orElseThrow(() -> new ResourceNotFoundException(
                                                                            String.format("Token %s not found.",
                                                                                    token)));
@@ -215,8 +189,7 @@ public class UserService {
     }
 
     @Transactional
-    public void changePassword(
-            PasswordChangeDto passwordChangeDto, String email)
+    public void changePassword(PasswordChangeDto passwordChangeDto, String email)
             throws ResourceNotFoundException, ValidationException {
         User user = checkUserExistsByEmail(email);
 
@@ -230,14 +203,14 @@ public class UserService {
     }
 
     @Transactional
-    public void changePasswordByRemindToken(
-            PasswordChangeDto passwordChangeDto, String token)
-            throws ResourceNotFoundException, TokenExpiredException,
-            ValidationException {
-        RemindPasswordToken remindPasswordToken
-                = remindPasswordRepository.findByToken(token)
-                                          .orElseThrow(() -> new ResourceNotFoundException(
-                                                  String.format("Token %s not found.", token)));
+    public void changePasswordByRemindToken(PasswordChangeDto passwordChangeDto, String token)
+            throws ResourceNotFoundException, TokenExpiredException, ValidationException {
+        RemindPasswordToken remindPasswordToken = remindPasswordRepository.findByToken(token)
+                                                                          .orElseThrow(
+                                                                                  () -> new ResourceNotFoundException(
+                                                                                          String.format(
+                                                                                                  "Token %s not found.",
+                                                                                                  token)));
         remindPasswordToken.checkExpired();
 
         userValidator.validateUserPasswordChange(passwordChangeDto);
@@ -252,15 +225,13 @@ public class UserService {
     }
 
     @Transactional
-    public StudentDto updateStudent(
-            StudentUpdateDto studentUpdateDto, String email)
+    public StudentDto updateStudent(StudentUpdateDto studentUpdateDto, String email)
             throws ResourceNotFoundException, ValidationException {
         User user = checkUserExistsByEmail(email);
 
         if (!(user instanceof Student student)) {
             throw new ClassCastException(
-                    String.format("User with %s email is not %s instance.",
-                            email, Student.class.getSimpleName()));
+                    String.format("User with %s email is not %s instance.", email, Student.class.getSimpleName()));
         }
 
         int changes = 0;
@@ -339,15 +310,13 @@ public class UserService {
     }
 
     @Transactional
-    public CompanyDto updateCompany(
-            CompanyUpdateDto companyUpdateDto, String email)
+    public CompanyDto updateCompany(CompanyUpdateDto companyUpdateDto, String email)
             throws ResourceNotFoundException, ValidationException {
         User user = checkUserExistsByEmail(email);
 
         if (!(user instanceof Company company)) {
             throw new ClassCastException(
-                    String.format("User with %s email is not %s instance.",
-                            email, Company.class.getSimpleName()));
+                    String.format("User with %s email is not %s instance.", email, Company.class.getSimpleName()));
         }
 
         int changes = 0;
@@ -421,15 +390,13 @@ public class UserService {
     }
 
     @Transactional
-    public CollegeDto updateCollege(
-            CollegeUpdateDto collegeUpdateDto, String email)
+    public CollegeDto updateCollege(CollegeUpdateDto collegeUpdateDto, String email)
             throws ResourceNotFoundException, ValidationException {
         User user = checkUserExistsByEmail(email);
 
         if (!(user instanceof College college)) {
             throw new ClassCastException(
-                    String.format("User with %s email is not %s instance.",
-                            email, College.class.getSimpleName()));
+                    String.format("User with %s email is not %s instance.", email, College.class.getSimpleName()));
         }
 
         int changes = 0;
@@ -453,8 +420,7 @@ public class UserService {
     }
 
     @Transactional
-    public void banUser(String stringUUID)
-            throws UUIDConversionException, ResourceNotFoundException {
+    public void banUser(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
         User user = checkUserExistsById(stringUUID);
         user.setBanned(true);
         userRepository.save(user);
@@ -464,25 +430,31 @@ public class UserService {
         try {
             userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
-            throw new ResourceViolationException(
-                    String.format("Email %s already exists.", user.getEmail()));
+            throw new ResourceViolationException(String.format("Email %s already exists.", user.getEmail()));
         }
     }
 
-    private User checkUserExistsById(String stringUUID)
-            throws UUIDConversionException, ResourceNotFoundException {
-        return userRepository.findById(
-                                     ObjectDtoConverter.stringUUIDToUUID(stringUUID))
+    private User checkUserExistsById(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
+        return userRepository.findById(ObjectDtoConverter.stringUUIDToUUID(stringUUID))
                              .orElseThrow(() -> new ResourceNotFoundException(
-                                     String.format("User with id %s not found.",
-                                             stringUUID)));
+                                     String.format("User with id %s not found.", stringUUID)));
     }
 
-    private User checkUserExistsByEmail(String email)
-            throws ResourceNotFoundException {
+    private User checkUserExistsByEmail(String email) throws ResourceNotFoundException {
         return userRepository.findByEmail(email)
                              .orElseThrow(() -> new ResourceNotFoundException(
                                      String.format("User with email %s not found.", email)));
+    }
+
+    private Object userToSpecificObject(User user) {
+        if (user instanceof Student student) {
+            return ObjectDtoConverter.studentObjectToStudentDto(student);
+        } else if (user instanceof Company company) {
+            return ObjectDtoConverter.companyObjectToCompanyDto(company);
+        } else {
+            College college = (College) user;
+            return ObjectDtoConverter.collegeObjectToCollegeDto(college);
+        }
     }
 
     private void generateActivationTokenAndSend(User user) {
@@ -492,15 +464,12 @@ public class UserService {
         sendGridService.sendEmail(activationToken);
     }
 
-    private String generateAccessToken(User user)
-            throws UserIsNotActivatedException, UserIsBannedException {
+    private String generateAccessToken(User user) throws UserIsNotActivatedException, UserIsBannedException {
         if (!user.isActive()) {
-            throw new UserIsNotActivatedException(
-                    String.format("User %s isn't activated.", user.getEmail()));
+            throw new UserIsNotActivatedException(String.format("User %s isn't activated.", user.getEmail()));
         }
         if (user.isBanned()) {
-            throw new UserIsBannedException(
-                    String.format("User %s is banned.", user.getEmail()));
+            throw new UserIsBannedException(String.format("User %s is banned.", user.getEmail()));
         }
 
         Instant now = Instant.now();
