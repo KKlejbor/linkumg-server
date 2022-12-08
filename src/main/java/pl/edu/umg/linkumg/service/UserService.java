@@ -30,10 +30,7 @@ import pl.edu.umg.linkumg.models.users.College;
 import pl.edu.umg.linkumg.models.users.Company;
 import pl.edu.umg.linkumg.models.users.Student;
 import pl.edu.umg.linkumg.models.users.User;
-import pl.edu.umg.linkumg.repositories.ActivationTokenRepository;
-import pl.edu.umg.linkumg.repositories.RefreshTokenRepository;
-import pl.edu.umg.linkumg.repositories.RemindPasswordRepository;
-import pl.edu.umg.linkumg.repositories.UserRepository;
+import pl.edu.umg.linkumg.repositories.*;
 import pl.edu.umg.linkumg.validators.users.CollegeValidator;
 import pl.edu.umg.linkumg.validators.users.CompanyValidator;
 import pl.edu.umg.linkumg.validators.users.StudentValidator;
@@ -52,6 +49,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     private UserRepository userRepository;
+    private StudentRepository studentRepository;
+    private CompanyRepository companyRepository;
+    private CollegeRepository collegeRepository;
     private ActivationTokenRepository activationTokenRepository;
     private RefreshTokenRepository refreshTokenRepository;
     private RemindPasswordRepository remindPasswordRepository;
@@ -62,18 +62,16 @@ public class UserService {
     private CollegeValidator collegeValidator;
 
     @Transactional
-    public void registerStudent(StudentRegisterDto studentRegisterDto) throws ResourceViolationException, ValidationException {
+    public void registerStudent(
+            StudentRegisterDto studentRegisterDto)
+            throws ResourceViolationException, ValidationException {
 
         studentValidator.validateStudentCreate(studentRegisterDto);
 
-        Student student = new Student(
-                studentRegisterDto.email(),
+        Student student = new Student(studentRegisterDto.email(),
                 passwordEncoder.encode(studentRegisterDto.password()),
-                studentRegisterDto.name(),
-                studentRegisterDto.lastName(),
-                studentRegisterDto.indexNumber(),
-                studentRegisterDto.faculty()
-        );
+                studentRegisterDto.name(), studentRegisterDto.lastName(),
+                studentRegisterDto.indexNumber(), studentRegisterDto.faculty());
 
         student.setCreatedAt(LocalDateTime.now());
         student.setLastUpdatedAt(LocalDateTime.now());
@@ -84,16 +82,15 @@ public class UserService {
     }
 
     @Transactional
-    public void registerCompany(CompanyRegisterDto companyRegisterDto) throws ResourceViolationException, ValidationException {
+    public void registerCompany(
+            CompanyRegisterDto companyRegisterDto)
+            throws ResourceViolationException, ValidationException {
 
         companyValidator.validateCompanyCreate(companyRegisterDto);
 
-        Company company = new Company(
-                companyRegisterDto.email(),
+        Company company = new Company(companyRegisterDto.email(),
                 passwordEncoder.encode(companyRegisterDto.password()),
-                companyRegisterDto.name(),
-                companyRegisterDto.nip()
-        );
+                companyRegisterDto.name(), companyRegisterDto.nip());
 
         company.setCreatedAt(LocalDateTime.now());
         company.setLastUpdatedAt(LocalDateTime.now());
@@ -104,16 +101,15 @@ public class UserService {
     }
 
     @Transactional
-    public void registerCollege(CollegeRegisterDto collegeRegisterDto) throws ResourceViolationException, ValidationException {
+    public void registerCollege(
+            CollegeRegisterDto collegeRegisterDto)
+            throws ResourceViolationException, ValidationException {
 
         collegeValidator.validateCollegeCreate(collegeRegisterDto);
 
-        College college = new College(
-                collegeRegisterDto.email(),
+        College college = new College(collegeRegisterDto.email(),
                 passwordEncoder.encode(collegeRegisterDto.password()),
-                collegeRegisterDto.name(),
-                collegeRegisterDto.faculty()
-        );
+                collegeRegisterDto.name(), collegeRegisterDto.faculty());
 
         college.setCreatedAt(LocalDateTime.now());
         college.setLastUpdatedAt(LocalDateTime.now());
@@ -124,36 +120,35 @@ public class UserService {
     }
 
     @Transactional
-    public TokenDto generateTokenByCredentials(LoginDto loginDto) throws UserIsNotActivatedException, UserBadCredentialsException, UserIsBannedException, ResourceNotFoundException {
+    public TokenDto generateTokenByCredentials(LoginDto loginDto)
+            throws UserIsNotActivatedException, UserBadCredentialsException,
+            UserIsBannedException, ResourceNotFoundException {
         User user = checkUserExistsByEmail(loginDto.email());
-        if (!passwordEncoder.matches(loginDto.password(), user.getPassword()))
+        if (!passwordEncoder.matches(loginDto.password(), user.getPassword())) {
             throw new UserBadCredentialsException("Bad credentials.");
+        }
 
-        return new TokenDto(
-                generateAccessToken(user),
-                generateRefreshToken(user)
-        );
+        return new TokenDto(generateAccessToken(user),
+                generateRefreshToken(user));
     }
 
     @Transactional
-    public TokenDto renewToken(String token) throws UserIsBannedException, UserIsNotActivatedException, ResourceNotFoundException, TokenExpiredException {
-        RefreshToken refreshToken = refreshTokenRepository
-                .findByToken(token)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                String.format("Token %s not found.", token)
-                        ));
+    public TokenDto renewToken(String token)
+            throws UserIsBannedException, UserIsNotActivatedException,
+            ResourceNotFoundException, TokenExpiredException {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
+                                                          .orElseThrow(() -> new ResourceNotFoundException(
+                                                                  String.format("Token %s not found.", token)));
 
         refreshToken.checkExpired();
 
-        return new TokenDto(
-                generateAccessToken(refreshToken.getUser()),
-                refreshToken.getToken()
-        );
+        return new TokenDto(generateAccessToken(refreshToken.getUser()),
+                refreshToken.getToken());
     }
 
     @Transactional
-    public void remindPassword(String email) throws ResourceNotFoundException {
+    public void remindPassword(String email)
+            throws ResourceNotFoundException {
         User user = checkUserExistsByEmail(email);
 
         RemindPasswordToken remindPasswordToken = new RemindPasswordToken(user);
@@ -162,7 +157,8 @@ public class UserService {
         sendGridService.sendEmail(remindPasswordToken);
     }
 
-    public Object findUserById(String stringUUID) throws ResourceNotFoundException, UUIDConversionException {
+    public Object findUserById(String stringUUID)
+            throws ResourceNotFoundException, UUIDConversionException {
         User user = checkUserExistsById(stringUUID);
 
         if (user instanceof Student student) {
@@ -175,19 +171,40 @@ public class UserService {
         }
     }
 
-    // TODO: findUsersPage
-    public Page<User> findUsersPage(Pageable pageable) {
-        return userRepository.findAll(pageable);
+    public Page<Object> findUsersPage(Pageable pageable, String type,
+            String email) {
+        return switch (type) {
+            case "Student" -> studentRepository.findAllByEmailContaining(pageable, email)
+                                               .map(ObjectDtoConverter::studentObjectToStudentDto);
+            case "Company" -> companyRepository.findAllByEmailContaining(pageable, email)
+                                               .map(ObjectDtoConverter::companyObjectToCompanyDto);
+            case "College" -> collegeRepository.findAllByEmailContaining(pageable, email)
+                                               .map(ObjectDtoConverter::collegeObjectToCollegeDto);
+            default -> userRepository.findAllByEmailContaining(pageable, email)
+                                     .map(user -> {
+                                         if (user instanceof Student student) {
+                                             return ObjectDtoConverter.studentObjectToStudentDto(
+                                                     student);
+                                         } else if (user instanceof Company company) {
+                                             return ObjectDtoConverter.companyObjectToCompanyDto(
+                                                     company);
+                                         } else {
+                                             College college = (College) user;
+                                             return ObjectDtoConverter.collegeObjectToCollegeDto(
+                                                     college);
+                                         }
+                                     });
+        };
     }
 
     @Transactional
-    public void activate(String token) throws ResourceNotFoundException, TokenExpiredException {
-        ActivationToken activationToken = activationTokenRepository.findByToken(token)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                String.format("Token %s not found.", token)
-                        )
-                );
+    public void activate(String token)
+            throws ResourceNotFoundException, TokenExpiredException {
+        ActivationToken activationToken = activationTokenRepository.findByToken(
+                                                                           token)
+                                                                   .orElseThrow(() -> new ResourceNotFoundException(
+                                                                           String.format("Token %s not found.",
+                                                                                   token)));
         activationToken.checkExpired();
 
         User user = activationToken.getUser();
@@ -198,14 +215,14 @@ public class UserService {
     }
 
     @Transactional
-    public void changePassword(PasswordChangeDto passwordChangeDto, String email) throws ResourceNotFoundException, ValidationException {
+    public void changePassword(
+            PasswordChangeDto passwordChangeDto, String email)
+            throws ResourceNotFoundException, ValidationException {
         User user = checkUserExistsByEmail(email);
 
         userValidator.validateUserPasswordChange(passwordChangeDto);
 
-        user.setPassword(
-                passwordEncoder.encode(passwordChangeDto.password())
-        );
+        user.setPassword(passwordEncoder.encode(passwordChangeDto.password()));
 
         user.setLastUpdatedAt(LocalDateTime.now());
 
@@ -213,21 +230,20 @@ public class UserService {
     }
 
     @Transactional
-    public void changePasswordByRemindToken(PasswordChangeDto passwordChangeDto, String token) throws ResourceNotFoundException, TokenExpiredException, ValidationException {
-        RemindPasswordToken remindPasswordToken = remindPasswordRepository.findByToken(token)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                String.format("Token %s not found.", token)
-                        )
-                );
+    public void changePasswordByRemindToken(
+            PasswordChangeDto passwordChangeDto, String token)
+            throws ResourceNotFoundException, TokenExpiredException,
+            ValidationException {
+        RemindPasswordToken remindPasswordToken
+                = remindPasswordRepository.findByToken(token)
+                                          .orElseThrow(() -> new ResourceNotFoundException(
+                                                  String.format("Token %s not found.", token)));
         remindPasswordToken.checkExpired();
 
         userValidator.validateUserPasswordChange(passwordChangeDto);
 
         User user = remindPasswordToken.getUser();
-        user.setPassword(
-                passwordEncoder.encode(passwordChangeDto.password())
-        );
+        user.setPassword(passwordEncoder.encode(passwordChangeDto.password()));
 
         user.setLastUpdatedAt(LocalDateTime.now());
 
@@ -236,11 +252,16 @@ public class UserService {
     }
 
     @Transactional
-    public StudentDto updateStudent(StudentUpdateDto studentUpdateDto, String email) throws ResourceNotFoundException, ValidationException {
+    public StudentDto updateStudent(
+            StudentUpdateDto studentUpdateDto, String email)
+            throws ResourceNotFoundException, ValidationException {
         User user = checkUserExistsByEmail(email);
 
-        if(!(user instanceof Student student))
-            throw new ClassCastException(String.format("User with %s email is not %s instance.", email, Student.class.getSimpleName()));
+        if (!(user instanceof Student student)) {
+            throw new ClassCastException(
+                    String.format("User with %s email is not %s instance.",
+                            email, Student.class.getSimpleName()));
+        }
 
         int changes = 0;
 
@@ -259,32 +280,52 @@ public class UserService {
             student.setDescription(studentUpdateDto.about());
             changes++;
         }
-        if (studentUpdateDto.socials().github() != null) {
-            studentValidator.validateGithub(studentUpdateDto.socials().github());
-            student.getSocials().setGithub(studentUpdateDto.socials().github());
+        if (studentUpdateDto.socials()
+                            .github() != null) {
+            studentValidator.validateGithub(studentUpdateDto.socials()
+                                                            .github());
+            student.getSocials()
+                   .setGithub(studentUpdateDto.socials()
+                                              .github());
             changes++;
         }
-        if (studentUpdateDto.socials().linkedin() != null) {
-            studentValidator.validateLinkedin(studentUpdateDto.socials().linkedin());
-            student.getSocials().setLinkedin(studentUpdateDto.socials().linkedin());
+        if (studentUpdateDto.socials()
+                            .linkedin() != null) {
+            studentValidator.validateLinkedin(studentUpdateDto.socials()
+                                                              .linkedin());
+            student.getSocials()
+                   .setLinkedin(studentUpdateDto.socials()
+                                                .linkedin());
             changes++;
         }
-        if (studentUpdateDto.socials().facebook() != null) {
-            studentValidator.validateFacebook(studentUpdateDto.socials().facebook());
-            student.getSocials().setFacebook(studentUpdateDto.socials().facebook());
+        if (studentUpdateDto.socials()
+                            .facebook() != null) {
+            studentValidator.validateFacebook(studentUpdateDto.socials()
+                                                              .facebook());
+            student.getSocials()
+                   .setFacebook(studentUpdateDto.socials()
+                                                .facebook());
             changes++;
         }
-        if (studentUpdateDto.socials().instagram() != null) {
-            studentValidator.validateInstagram(studentUpdateDto.socials().instagram());
-            student.getSocials().setInstagram(studentUpdateDto.socials().instagram());
+        if (studentUpdateDto.socials()
+                            .instagram() != null) {
+            studentValidator.validateInstagram(studentUpdateDto.socials()
+                                                               .instagram());
+            student.getSocials()
+                   .setInstagram(studentUpdateDto.socials()
+                                                 .instagram());
             changes++;
         }
-        if (studentUpdateDto.socials().ownSite() != null) {
-            studentValidator.validateOwnSite(studentUpdateDto.socials().ownSite());
-            student.getSocials().setOwnSite(studentUpdateDto.socials().ownSite());
+        if (studentUpdateDto.socials()
+                            .ownSite() != null) {
+            studentValidator.validateOwnSite(studentUpdateDto.socials()
+                                                             .ownSite());
+            student.getSocials()
+                   .setOwnSite(studentUpdateDto.socials()
+                                               .ownSite());
             changes++;
         }
-        if(studentUpdateDto.avatar()!=null){
+        if (studentUpdateDto.avatar() != null) {
             student.setPathToAvatar(studentUpdateDto.avatar());
             changes++;
         }
@@ -298,11 +339,16 @@ public class UserService {
     }
 
     @Transactional
-    public CompanyDto updateCompany(CompanyUpdateDto companyUpdateDto, String email) throws ResourceNotFoundException, ValidationException {
+    public CompanyDto updateCompany(
+            CompanyUpdateDto companyUpdateDto, String email)
+            throws ResourceNotFoundException, ValidationException {
         User user = checkUserExistsByEmail(email);
 
-        if(!(user instanceof Company company))
-            throw new ClassCastException(String.format("User with %s email is not %s instance.", email, Company.class.getSimpleName()));
+        if (!(user instanceof Company company)) {
+            throw new ClassCastException(
+                    String.format("User with %s email is not %s instance.",
+                            email, Company.class.getSimpleName()));
+        }
 
         int changes = 0;
 
@@ -316,37 +362,57 @@ public class UserService {
             company.setDescription(companyUpdateDto.about());
             changes++;
         }
-        if (companyUpdateDto.socials().github() != null) {
-            companyValidator.validateGithub(companyUpdateDto.socials().github());
-            company.getSocials().setGithub(companyUpdateDto.socials().github());
+        if (companyUpdateDto.socials()
+                            .github() != null) {
+            companyValidator.validateGithub(companyUpdateDto.socials()
+                                                            .github());
+            company.getSocials()
+                   .setGithub(companyUpdateDto.socials()
+                                              .github());
             changes++;
         }
-        if (companyUpdateDto.socials().linkedin() != null) {
-            companyValidator.validateLinkedin(companyUpdateDto.socials().linkedin());
-            company.getSocials().setLinkedin(companyUpdateDto.socials().linkedin());
+        if (companyUpdateDto.socials()
+                            .linkedin() != null) {
+            companyValidator.validateLinkedin(companyUpdateDto.socials()
+                                                              .linkedin());
+            company.getSocials()
+                   .setLinkedin(companyUpdateDto.socials()
+                                                .linkedin());
             changes++;
         }
-        if (companyUpdateDto.socials().facebook() != null) {
-            companyValidator.validateFacebook(companyUpdateDto.socials().facebook());
-            company.getSocials().setFacebook(companyUpdateDto.socials().facebook());
+        if (companyUpdateDto.socials()
+                            .facebook() != null) {
+            companyValidator.validateFacebook(companyUpdateDto.socials()
+                                                              .facebook());
+            company.getSocials()
+                   .setFacebook(companyUpdateDto.socials()
+                                                .facebook());
             changes++;
         }
-        if (companyUpdateDto.socials().instagram() != null) {
-            companyValidator.validateInstagram(companyUpdateDto.socials().instagram());
-            company.getSocials().setInstagram(companyUpdateDto.socials().instagram());
+        if (companyUpdateDto.socials()
+                            .instagram() != null) {
+            companyValidator.validateInstagram(companyUpdateDto.socials()
+                                                               .instagram());
+            company.getSocials()
+                   .setInstagram(companyUpdateDto.socials()
+                                                 .instagram());
             changes++;
         }
-        if (companyUpdateDto.socials().ownSite() != null) {
-            companyValidator.validateOwnSite(companyUpdateDto.socials().ownSite());
-            company.getSocials().setOwnSite(companyUpdateDto.socials().ownSite());
+        if (companyUpdateDto.socials()
+                            .ownSite() != null) {
+            companyValidator.validateOwnSite(companyUpdateDto.socials()
+                                                             .ownSite());
+            company.getSocials()
+                   .setOwnSite(companyUpdateDto.socials()
+                                               .ownSite());
             changes++;
         }
-        if(companyUpdateDto.avatar()!=null){
+        if (companyUpdateDto.avatar() != null) {
             company.setPathToAvatar(companyUpdateDto.avatar());
             changes++;
         }
 
-        if(changes>0) {
+        if (changes > 0) {
             company.setLastUpdatedAt(LocalDateTime.now());
             userRepository.save(company);
         }
@@ -355,11 +421,16 @@ public class UserService {
     }
 
     @Transactional
-    public CollegeDto updateCollege(CollegeUpdateDto collegeUpdateDto, String email) throws ResourceNotFoundException, ValidationException {
+    public CollegeDto updateCollege(
+            CollegeUpdateDto collegeUpdateDto, String email)
+            throws ResourceNotFoundException, ValidationException {
         User user = checkUserExistsByEmail(email);
 
-        if(!(user instanceof College college))
-            throw new ClassCastException(String.format("User with %s email is not %s instance.", email, College.class.getSimpleName()));
+        if (!(user instanceof College college)) {
+            throw new ClassCastException(
+                    String.format("User with %s email is not %s instance.",
+                            email, College.class.getSimpleName()));
+        }
 
         int changes = 0;
 
@@ -382,7 +453,8 @@ public class UserService {
     }
 
     @Transactional
-    public void banUser(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
+    public void banUser(String stringUUID)
+            throws UUIDConversionException, ResourceNotFoundException {
         User user = checkUserExistsById(stringUUID);
         user.setBanned(true);
         userRepository.save(user);
@@ -393,28 +465,24 @@ public class UserService {
             userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
             throw new ResourceViolationException(
-                    String.format("Email %s already exists.", user.getEmail())
-            );
+                    String.format("Email %s already exists.", user.getEmail()));
         }
     }
 
-    private User checkUserExistsById(String stringUUID) throws UUIDConversionException, ResourceNotFoundException {
-        return userRepository
-                .findById(ObjectDtoConverter.stringUUIDToUUID(stringUUID))
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                String.format("User with id %s not found.", stringUUID)
-                        )
-                );
+    private User checkUserExistsById(String stringUUID)
+            throws UUIDConversionException, ResourceNotFoundException {
+        return userRepository.findById(
+                                     ObjectDtoConverter.stringUUIDToUUID(stringUUID))
+                             .orElseThrow(() -> new ResourceNotFoundException(
+                                     String.format("User with id %s not found.",
+                                             stringUUID)));
     }
 
-    private User checkUserExistsByEmail(String email) throws ResourceNotFoundException {
-        return userRepository
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                String.format("User with email %s not found.", email)
-                        ));
+    private User checkUserExistsByEmail(String email)
+            throws ResourceNotFoundException {
+        return userRepository.findByEmail(email)
+                             .orElseThrow(() -> new ResourceNotFoundException(
+                                     String.format("User with email %s not found.", email)));
     }
 
     private void generateActivationTokenAndSend(User user) {
@@ -424,28 +492,31 @@ public class UserService {
         sendGridService.sendEmail(activationToken);
     }
 
-    private String generateAccessToken(User user) throws UserIsNotActivatedException, UserIsBannedException {
+    private String generateAccessToken(User user)
+            throws UserIsNotActivatedException, UserIsBannedException {
         if (!user.isActive()) {
-            throw new UserIsNotActivatedException(String.format("User %s isn't activated.", user.getEmail()));
+            throw new UserIsNotActivatedException(
+                    String.format("User %s isn't activated.", user.getEmail()));
         }
         if (user.isBanned()) {
-            throw new UserIsBannedException(String.format("User %s is banned.", user.getEmail()));
+            throw new UserIsBannedException(
+                    String.format("User %s is banned.", user.getEmail()));
         }
 
         Instant now = Instant.now();
-        String role = user
-                .getClass()
-                .getSimpleName()
-                .toUpperCase(Locale.ROOT);
+        String role = user.getClass()
+                          .getSimpleName()
+                          .toUpperCase(Locale.ROOT);
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("self")
-                .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.HOURS))
-                .subject(user.getEmail())
-                .claim("scope", role)
-                .build();
+                                          .issuer("self")
+                                          .issuedAt(now)
+                                          .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                                          .subject(user.getEmail())
+                                          .claim("scope", role)
+                                          .build();
 
-        return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        return this.encoder.encode(JwtEncoderParameters.from(claims))
+                           .getTokenValue();
     }
 
     private String generateRefreshToken(User user) {
