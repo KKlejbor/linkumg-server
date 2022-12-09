@@ -426,9 +426,13 @@ public class UserService {
     }
 
     private void saveNewInDB(User user) throws ResourceViolationException {
-        try {
+        boolean exits = true;
+        try{
             checkUserExistsByEmail(user.getEmail());
-        } catch (Exception e) {
+        }catch (ResourceNotFoundException e){
+            exits = false;
+        }
+        if(exits) {
             throw new ResourceViolationException(String.format("Email %s already exists.", user.getEmail()));
         }
         userRepository.save(user);
