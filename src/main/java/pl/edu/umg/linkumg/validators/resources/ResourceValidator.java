@@ -5,7 +5,7 @@ import pl.edu.umg.linkumg.validators.DescriptionValidator;
 
 public interface ResourceValidator extends DescriptionValidator {
     default void validateTitle(String title) throws ValidationException {
-        boolean check = title.matches("[a-zA-ZĄĆĘŁŃÓŚŹŻżąćęłńóśź ]{2,20}");
+        boolean check = title.matches("[a-zA-ZĄĆĘŁŃÓŚŹŻżąćęłńóśź ]{2,50}");
         if (!check) throw new ValidationException("Title is invalid.");
     }
 
