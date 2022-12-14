@@ -89,9 +89,9 @@ public class WebSecurityConfig {
                         .antMatchers(HttpMethod.PATCH, "/announcements/{stringUUID}").hasRole("COLLEGE")
                         .antMatchers(HttpMethod.DELETE, "/announcements/{stringUUID}").hasRole("COLLEGE")
 
-                        .antMatchers(HttpMethod.POST, "/collages").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.POST, "/colleges").hasRole("ADMIN")
                         .antMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
-                        .antMatchers(HttpMethod.POST, "/users/ban/{stringUUID}").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.PATCH, "/users/ban/{stringUUID}").hasRole("ADMIN")
 
                         .anyRequest()
                         .hasRole("ADMIN"))
