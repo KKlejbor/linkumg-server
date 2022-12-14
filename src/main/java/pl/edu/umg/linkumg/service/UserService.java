@@ -25,10 +25,7 @@ import pl.edu.umg.linkumg.exceptions.*;
 import pl.edu.umg.linkumg.models.tokens.ActivationToken;
 import pl.edu.umg.linkumg.models.tokens.RefreshToken;
 import pl.edu.umg.linkumg.models.tokens.RemindPasswordToken;
-import pl.edu.umg.linkumg.models.users.College;
-import pl.edu.umg.linkumg.models.users.Company;
-import pl.edu.umg.linkumg.models.users.Student;
-import pl.edu.umg.linkumg.models.users.User;
+import pl.edu.umg.linkumg.models.users.*;
 import pl.edu.umg.linkumg.repositories.*;
 import pl.edu.umg.linkumg.validators.users.CollegeValidator;
 import pl.edu.umg.linkumg.validators.users.CompanyValidator;
@@ -174,15 +171,12 @@ public class UserService {
     public Page<Object> findUsersPage(Pageable pageable, String type,
             String email) {
         return switch (type) {
-            case "Student" ->
-                    studentRepository.findAllByEmailContaining(pageable, email)
-                                     .map(ObjectDtoConverter::studentObjectToStudentDto);
-            case "Company" ->
-                    companyRepository.findAllByEmailContaining(pageable, email)
-                                     .map(ObjectDtoConverter::companyObjectToCompanyDto);
-            case "College" ->
-                    collegeRepository.findAllByEmailContaining(pageable, email)
-                                     .map(ObjectDtoConverter::collegeObjectToCollegeDto);
+            case "Student" -> studentRepository.findAllByEmailContaining(pageable, email)
+                                               .map(ObjectDtoConverter::studentObjectToStudentDto);
+            case "Company" -> companyRepository.findAllByEmailContaining(pageable, email)
+                                               .map(ObjectDtoConverter::companyObjectToCompanyDto);
+            case "College" -> collegeRepository.findAllByEmailContaining(pageable, email)
+                                               .map(ObjectDtoConverter::collegeObjectToCollegeDto);
             default -> userRepository.findAllByEmailContaining(pageable, email)
                                      .map(this::userToSpecificObject);
         };
@@ -497,9 +491,11 @@ public class UserService {
             return ObjectDtoConverter.studentObjectToStudentDto(student);
         } else if (user instanceof Company company) {
             return ObjectDtoConverter.companyObjectToCompanyDto(company);
-        } else {
-            College college = (College) user;
+        } else if (user instanceof College college) {
             return ObjectDtoConverter.collegeObjectToCollegeDto(college);
+        } else {
+            Admin admin = (Admin) user;
+            return ObjectDtoConverter.adminObjectToAdminDto(admin);
         }
     }
 
