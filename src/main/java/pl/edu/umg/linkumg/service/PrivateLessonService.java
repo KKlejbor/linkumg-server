@@ -50,7 +50,7 @@ public class PrivateLessonService {
 
     public Page<PrivateLessonDto> findPrivateLessonsPage(Pageable pageable, String contain, String category, String location) {
         Page<PrivateLesson> privateLessonPage =
-                privateLessonRepository.findAllByTitleContainingOrDescriptionContainingOrCategoryContainingOrLocationContaining(pageable, contain, contain, category, location);
+                privateLessonRepository.findAllByTitleContainingAndDescriptionContainingAndCategoryContainingAndLocationContaining(pageable, contain, contain, category, location);
 
         return privateLessonPage.map(ObjectDtoConverter::privateLessonObjectToPrivateLessonDto);
     }

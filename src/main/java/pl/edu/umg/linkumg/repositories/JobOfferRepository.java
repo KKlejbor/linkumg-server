@@ -10,11 +10,16 @@ import java.util.UUID;
 
 @Repository
 public interface JobOfferRepository extends PagingAndSortingRepository<JobOffer, UUID> {
-    Page<JobOffer> findAllByTitleContainingOrDescriptionContainingOrLocationContaining(Pageable pageable, String title, String description, String location);
 
-    Page<JobOffer> findAllByTitleContainingOrDescriptionContainingOrLocationContainingAndSalaryDownIsGreaterThanEqualAndSalaryUpIsLessThanEqual(Pageable pageable, String title, String description, String location, int salaryDown, int salaryUp);
+    Page<JobOffer> findAllByTitleContainingAndDescriptionContainingAndLocationContaining(Pageable pageable,
+            String title, String description, String location);
 
-    Page<JobOffer> findAllByTitleContainingOrDescriptionContainingOrLocationContainingAndSalaryDownIsGreaterThanEqual(Pageable pageable, String title, String description, String location, int salaryDown);
+    Page<JobOffer> findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryDownIsGreaterThanEqualAndSalaryUpIsLessThanEqual(
+            Pageable pageable, String title, String description, String location, int salaryDown, int salaryUp);
 
-    Page<JobOffer> findAllByTitleContainingOrDescriptionContainingOrLocationContainingAndSalaryUpIsLessThanEqual(Pageable pageable, String title, String description, String location, int salaryUp);
+    Page<JobOffer> findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryDownIsGreaterThanEqual(
+            Pageable pageable, String title, String description, String location, int salaryDown);
+
+    Page<JobOffer> findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryUpIsLessThanEqual(
+            Pageable pageable, String title, String description, String location, int salaryUp);
 }

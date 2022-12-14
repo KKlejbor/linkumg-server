@@ -57,14 +57,14 @@ public class JobOfferService {
                     salaryDown = salaryUp;
                     salaryUp = store;
                 }
-                jobOffersPage = jobOfferRepository.findAllByTitleContainingOrDescriptionContainingOrLocationContainingAndSalaryDownIsGreaterThanEqualAndSalaryUpIsLessThanEqual(pageable, contain, contain, location, salaryDown, salaryUp);
+                jobOffersPage = jobOfferRepository.findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryDownIsGreaterThanEqualAndSalaryUpIsLessThanEqual(pageable, contain, contain, location, salaryDown, salaryUp);
             } else if (salaryDown != null) {
-                jobOffersPage = jobOfferRepository.findAllByTitleContainingOrDescriptionContainingOrLocationContainingAndSalaryDownIsGreaterThanEqual(pageable, contain, contain, location, salaryDown);
+                jobOffersPage = jobOfferRepository.findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryDownIsGreaterThanEqual(pageable, contain, contain, location, salaryDown);
             } else {
-                jobOffersPage = jobOfferRepository.findAllByTitleContainingOrDescriptionContainingOrLocationContainingAndSalaryUpIsLessThanEqual(pageable, contain, contain, location, salaryUp);
+                jobOffersPage = jobOfferRepository.findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryUpIsLessThanEqual(pageable, contain, contain, location, salaryUp);
             }
         } else {
-            jobOffersPage = jobOfferRepository.findAllByTitleContainingOrDescriptionContainingOrLocationContaining(pageable, contain, contain, location);
+            jobOffersPage = jobOfferRepository.findAllByTitleContainingAndDescriptionContainingAndLocationContaining(pageable, contain, contain, location);
         }
         return jobOffersPage.map(ObjectDtoConverter::jobOfferObjectToJobOfferDto);
     }
