@@ -57,14 +57,14 @@ public class JobOfferService {
                     salaryDown = salaryUp;
                     salaryUp = store;
                 }
-                jobOffersPage = jobOfferRepository.findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryDownIsGreaterThanEqualAndSalaryUpIsLessThanEqual(pageable, contain, contain, location, salaryDown, salaryUp);
+                jobOffersPage = jobOfferRepository.findAllByCompanyBannedFalseAndTitleContainingAndLocationContainingAndSalaryDownIsGreaterThanEqualAndSalaryUpIsLessThanEqualAllIgnoreCase(pageable, contain, location, salaryDown, salaryUp);
             } else if (salaryDown != null) {
-                jobOffersPage = jobOfferRepository.findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryDownIsGreaterThanEqual(pageable, contain, contain, location, salaryDown);
+                jobOffersPage = jobOfferRepository.findAllByCompanyBannedFalseAndTitleContainingAndLocationContainingAndSalaryDownIsGreaterThanEqualAllIgnoreCase(pageable, contain, location, salaryDown);
             } else {
-                jobOffersPage = jobOfferRepository.findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryUpIsLessThanEqual(pageable, contain, contain, location, salaryUp);
+                jobOffersPage = jobOfferRepository.findAllByCompanyBannedFalseAndTitleContainingAndLocationContainingAndSalaryUpIsLessThanEqualAllIgnoreCase(pageable, contain, location, salaryUp);
             }
         } else {
-            jobOffersPage = jobOfferRepository.findAllByTitleContainingAndDescriptionContainingAndLocationContaining(pageable, contain, contain, location);
+            jobOffersPage = jobOfferRepository.findAllByCompanyBannedFalseAndTitleContainingAndLocationContainingAllIgnoreCase(pageable, contain, location);
         }
         return jobOffersPage.map(ObjectDtoConverter::jobOfferObjectToJobOfferDto);
     }

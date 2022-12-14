@@ -29,41 +29,7 @@ public class LinkumgApplication {
     CommandLineRunner commandLineRunnerDev(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             createAdmin(userRepository, passwordEncoder);
-
-            Student student = new Student(
-                    "student",
-                    passwordEncoder.encode("password"),
-                    "student",
-                    "student",
-                    99999,
-                    "faculty"
-            );
-
-            student.setActive(true);
-
-            userRepository.save(student);
-
-            Company company = new Company(
-                    "company",
-                    passwordEncoder.encode("password"),
-                    "company",
-                    "nip"
-            );
-
-            company.setActive(true);
-
-            userRepository.save(company);
-
-            College college = new College(
-                    "college",
-                    passwordEncoder.encode("password"),
-                    "college",
-                    "faculty"
-            );
-
-            college.setActive(true);
-
-            userRepository.save(college);
+            createDefaultAccounts(userRepository, passwordEncoder);
         };
     }
 
@@ -72,6 +38,7 @@ public class LinkumgApplication {
     CommandLineRunner commandLineRunnerProd(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             createAdmin(userRepository, passwordEncoder);
+            createDefaultAccounts(userRepository, passwordEncoder);
         };
     }
 
@@ -94,5 +61,44 @@ public class LinkumgApplication {
 
             userRepository.save(admin);
         }
+    }
+
+    private void createDefaultAccounts(UserRepository userRepository, PasswordEncoder passwordEncoder){
+        createAdmin(userRepository, passwordEncoder);
+
+        Student student = new Student(
+                "student",
+                passwordEncoder.encode("password"),
+                "student",
+                "student",
+                99999,
+                "faculty"
+        );
+
+        student.setActive(true);
+
+        userRepository.save(student);
+
+        Company company = new Company(
+                "company",
+                passwordEncoder.encode("password"),
+                "company",
+                "nip"
+        );
+
+        company.setActive(true);
+
+        userRepository.save(company);
+
+        College college = new College(
+                "college",
+                passwordEncoder.encode("password"),
+                "college",
+                "faculty"
+        );
+
+        college.setActive(true);
+
+        userRepository.save(college);
     }
 }

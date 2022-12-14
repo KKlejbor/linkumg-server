@@ -70,7 +70,7 @@ public class WebSecurityConfig {
                         .antMatchers(HttpMethod.GET, "/users/info").authenticated()
                         .antMatchers(HttpMethod.GET, "/users/{stringUUID}").authenticated()
                         .antMatchers(HttpMethod.POST, "/users/changePassword").authenticated()
-                        .antMatchers(HttpMethod.GET, "/users/image/{fileName}").authenticated()
+                        .antMatchers(HttpMethod.GET, "/users/image/{fileName}").permitAll()
                         .antMatchers(HttpMethod.POST, "/users/image/{stringUUID}").authenticated()
 
                         .antMatchers(HttpMethod.PATCH, "/students").hasRole("STUDENT")

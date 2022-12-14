@@ -11,15 +11,15 @@ import java.util.UUID;
 @Repository
 public interface JobOfferRepository extends PagingAndSortingRepository<JobOffer, UUID> {
 
-    Page<JobOffer> findAllByTitleContainingAndDescriptionContainingAndLocationContaining(Pageable pageable,
-            String title, String description, String location);
+    Page<JobOffer> findAllByCompanyBannedFalseAndTitleContainingAndLocationContainingAllIgnoreCase(Pageable pageable,
+            String title, String location);
 
-    Page<JobOffer> findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryDownIsGreaterThanEqualAndSalaryUpIsLessThanEqual(
-            Pageable pageable, String title, String description, String location, int salaryDown, int salaryUp);
+    Page<JobOffer> findAllByCompanyBannedFalseAndTitleContainingAndLocationContainingAndSalaryDownIsGreaterThanEqualAndSalaryUpIsLessThanEqualAllIgnoreCase(
+            Pageable pageable, String title, String location, int salaryDown, int salaryUp);
 
-    Page<JobOffer> findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryDownIsGreaterThanEqual(
-            Pageable pageable, String title, String description, String location, int salaryDown);
+    Page<JobOffer> findAllByCompanyBannedFalseAndTitleContainingAndLocationContainingAndSalaryDownIsGreaterThanEqualAllIgnoreCase(
+            Pageable pageable, String title, String location, int salaryDown);
 
-    Page<JobOffer> findAllByTitleContainingAndDescriptionContainingAndLocationContainingAndSalaryUpIsLessThanEqual(
-            Pageable pageable, String title, String description, String location, int salaryUp);
+    Page<JobOffer> findAllByCompanyBannedFalseAndTitleContainingAndLocationContainingAndSalaryUpIsLessThanEqualAllIgnoreCase(
+            Pageable pageable, String title, String location, int salaryUp);
 }

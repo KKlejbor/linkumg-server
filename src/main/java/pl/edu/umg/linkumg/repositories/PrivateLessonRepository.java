@@ -10,5 +10,7 @@ import java.util.UUID;
 
 @Repository
 public interface PrivateLessonRepository extends PagingAndSortingRepository<PrivateLesson, UUID> {
-    Page<PrivateLesson> findAllByTitleContainingAndDescriptionContainingAndCategoryContainingAndLocationContaining(Pageable pageable, String title, String description, String category, String location);
+
+    Page<PrivateLesson> findAllByTitleContainingAndCategoryContainingAndLocationContainingAllIgnoreCase(
+            Pageable pageable, String title, String category, String location);
 }

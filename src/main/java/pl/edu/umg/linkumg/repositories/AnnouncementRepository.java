@@ -10,5 +10,6 @@ import java.util.UUID;
 
 @Repository
 public interface AnnouncementRepository extends PagingAndSortingRepository<Announcement, UUID> {
-    Page<Announcement> findAllByTitleContainingAndDescriptionContaining(Pageable pageable, String title, String description);
+
+    Page<Announcement> findAllByCollegeBannedFalseAndTitleContainingAllIgnoreCase(Pageable pageable, String title);
 }

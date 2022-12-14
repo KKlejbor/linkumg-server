@@ -50,7 +50,7 @@ public class AnnouncementService {
 
     public Page<AnnouncementDto> findAnnouncementsPage(Pageable pageable, String contain) {
         Page<Announcement> announcementsPage =
-                announcementRepository.findAllByTitleContainingAndDescriptionContaining(pageable, contain, contain);
+                announcementRepository.findAllByCollegeBannedFalseAndTitleContainingAllIgnoreCase(pageable, contain);
 
         return announcementsPage.map(ObjectDtoConverter::announcementObjectToAnnouncementDto);
     }
