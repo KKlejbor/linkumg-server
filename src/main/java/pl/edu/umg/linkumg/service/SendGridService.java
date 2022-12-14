@@ -6,11 +6,10 @@ import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Email;
 import com.sendgrid.helpers.mail.objects.Personalization;
-import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pl.edu.umg.linkumg.models.tokens.ActivationToken;
@@ -20,8 +19,6 @@ import java.io.IOException;
 import java.net.URL;
 
 @Service
-@AllArgsConstructor
-//@ConfigurationProperties(prefix = "environment")
 public class SendGridService {
 
     private static final Logger LOGGER = LogManager.getLogger(SendGridService.class);
@@ -33,6 +30,11 @@ public class SendGridService {
     @Value("${environment.url}")
     private String url;
     private SendGrid sendGrid;
+
+    @Autowired
+    public SendGridService(SendGrid sendGrid) {
+        this.sendGrid = sendGrid;
+    }
 
     public void sendEmail(Token token) {
         Email emailTo = new Email(token.getUser()
