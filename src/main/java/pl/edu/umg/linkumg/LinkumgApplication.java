@@ -63,42 +63,49 @@ public class LinkumgApplication {
         }
     }
 
-    private void createDefaultAccounts(UserRepository userRepository, PasswordEncoder passwordEncoder){
-        createAdmin(userRepository, passwordEncoder);
+    private void createDefaultAccounts(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        if (!userRepository.findByEmail("student")
+                           .isPresent()) {
+            Student student = new Student(
+                    "student",
+                    passwordEncoder.encode("password"),
+                    "student",
+                    "student",
+                    99999,
+                    "faculty"
+            );
 
-        Student student = new Student(
-                "student",
-                passwordEncoder.encode("password"),
-                "student",
-                "student",
-                99999,
-                "faculty"
-        );
+            student.setActive(true);
 
-        student.setActive(true);
+            userRepository.save(student);
+        }
 
-        userRepository.save(student);
+        if (!userRepository.findByEmail("company")
+                           .isPresent()) {
+            Company company = new Company(
+                    "company",
+                    passwordEncoder.encode("password"),
+                    "company",
+                    "nip"
+            );
 
-        Company company = new Company(
-                "company",
-                passwordEncoder.encode("password"),
-                "company",
-                "nip"
-        );
+            company.setActive(true);
 
-        company.setActive(true);
+            userRepository.save(company);
+        }
 
-        userRepository.save(company);
+        if (!userRepository.findByEmail("college")
+                           .isPresent()) {
+            College college = new College(
+                    "college",
+                    passwordEncoder.encode("password"),
+                    "college",
+                    "faculty"
+            );
 
-        College college = new College(
-                "college",
-                passwordEncoder.encode("password"),
-                "college",
-                "faculty"
-        );
+            college.setActive(true);
 
-        college.setActive(true);
-
-        userRepository.save(college);
+            userRepository.save(college);
+        }
     }
 }
