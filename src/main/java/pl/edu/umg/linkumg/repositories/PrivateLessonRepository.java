@@ -1,11 +1,16 @@
 package pl.edu.umg.linkumg.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import pl.edu.umg.linkumg.models.PrivateLesson;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.stereotype.Repository;
+import pl.edu.umg.linkumg.models.resources.PrivateLesson;
 
-import java.util.Date;
-import java.util.List;
+import java.util.UUID;
 
-public interface PrivateLessonRepository extends JpaRepository<PrivateLesson, Integer> {
-    List<PrivateLesson> findByPricePerHourBetween(Date from, Date to);
+@Repository
+public interface PrivateLessonRepository extends PagingAndSortingRepository<PrivateLesson, UUID> {
+
+    Page<PrivateLesson> findAllByTitleContainingAndCategoryContainingAndLocationContainingAllIgnoreCase(
+            Pageable pageable, String title, String category, String location);
 }
