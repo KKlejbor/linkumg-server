@@ -1,8 +1,15 @@
 package pl.edu.umg.linkumg.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import pl.edu.umg.linkumg.models.Announcement;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.stereotype.Repository;
+import pl.edu.umg.linkumg.models.resources.Announcement;
 
-public interface AnnouncementRepository extends JpaRepository<Announcement, Integer> {
+import java.util.UUID;
 
+@Repository
+public interface AnnouncementRepository extends PagingAndSortingRepository<Announcement, UUID> {
+
+    Page<Announcement> findAllByCollegeBannedFalseAndTitleContainingAllIgnoreCase(Pageable pageable, String title);
 }
