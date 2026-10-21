@@ -13,7 +13,7 @@ COPY src /workspace/src
 RUN mvn -DskipTests=true -f pom.xml clean package
 
 ### STAGE 2: Run ###
-FROM openjdk:17-alpine
+FROM openjdk:17-ea-jdk-alpine3.14
 
 COPY --from=build /workspace/target/*.jar app.jar
 
